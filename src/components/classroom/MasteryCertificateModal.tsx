@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Award, CheckCircle2, Download, Printer, Share2, X, ShieldCheck } from 'lucide-react';
+import { saveCertificateToFirestore } from '../../infrastructure/firebase/firebaseClient.ts';
 
 interface MasteryCertificateModalProps {
   surahName: string;
@@ -29,6 +30,19 @@ export const MasteryCertificateModal: React.FC<MasteryCertificateModalProps> = (
   });
 
   const certificateId = `QUR-CERT-${surahNumber}-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  useEffect(() => {
+    saveCertificateToFirestore({
+      certificateId,
+      studentName,
+      surahNumber,
+      surahName,
+      accuracyScore,
+      verificationHash: certificateId,
+    }).catch(() => {
+      // Offline mode or guest user
+    });
+  }, [certificateId, studentName, surahNumber, surahName, accuracyScore]);
 
   const handlePrint = () => {
     window.print();

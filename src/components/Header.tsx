@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, BookOpen, Globe, Share2 } from 'lucide-react';
 import { SyncStatusBadge } from './SyncStatusBadge.tsx';
 import { InstallPwaButton } from './InstallPwaButton.tsx';
+import { FirebaseAuthButton } from './FirebaseAuthButton.tsx';
 import { PublicShareModal } from './classroom/PublicShareModal.tsx';
 
 export const Header: React.FC = () => {
@@ -26,12 +27,13 @@ export const Header: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  تسميع مباشر بالمايكروفون + تصحيح فوري بالتجويد + حفظ أوفلاين
+                  تسميع مباشر بالمايكروفون + تصحيح فوري بالتجويد + حفظ أوفلاين وسحابي (Firebase)
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 self-end sm:self-center">
+              <FirebaseAuthButton />
               <button
                 onClick={() => setShowShareModal(true)}
                 className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
@@ -55,5 +57,6 @@ export const Header: React.FC = () => {
     </>
   );
 };
+
 
 

@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { MasteryCertificateModal } from './classroom/MasteryCertificateModal.tsx';
 import { RecitationReportModal, RecitationReportData } from './classroom/RecitationReportModal.tsx';
+import { syncStudentProfileToFirestore } from '../infrastructure/firebase/firebaseClient.ts';
 
 interface StudentProgressDashboardProps {
   onStartRecitation?: (surahId: number, startAyah: number, endAyah: number) => void;
@@ -109,9 +110,18 @@ export const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> =
     return selectAllSurahsProgress(profile);
   }, [profile]);
 
+  useEffect(() => {
+    if (profile) {
+      syncStudentProfileToFirestore(activeStudent.studentId, {
+        totalAyahsMemorized: progressViewModel.analytics.totalAyahsMastered,
+        overallRetentionRate: Math.round(progressViewModel.analytics.cumulativeAccuracyPercentage),
+      }).catch(() => {});
+    }
+  }, [profile, activeStudent.studentId, progressViewModel.analytics]);
+
   const dashboardReportData: RecitationReportData = useMemo(() => {
-    const totalAyahsMemorized = progressViewModel.metrics.memorizedAyahsCount || 7;
-    const accuracyScore = Math.round(progressViewModel.metrics.overallRetentionRate * 100) || 95;
+    const totalAyahsMemorized = progressViewModel.analytics.totalAyahsMastered || 7;
+    const accuracyScore = Math.round(progressViewModel.analytics.cumulativeAccuracyPercentage) || 95;
     return {
       surahNumber: 1,
       surahName: 'سورة الفاتحة وجزء عم',
@@ -120,7 +130,7 @@ export const StudentProgressDashboard: React.FC<StudentProgressDashboardProps> =
       accuracyScore,
       tajweedScore: 96,
       fluencyScore: 92,
-      hesitationCount: progressViewModel.metrics.dueRevisionsCount || 0,
+      hesitationCount: progressViewModel.revisionOverview.dueTodayCount || 0,
       errorCount: 0,
       perfectWordCount: 95,
       reciterBenchmark: 'الشيخ محمود خليل الحصري (مرجع التحقيق)',

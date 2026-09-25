@@ -1,0 +1,194 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with authentication and role information",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth User ID"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "User email address"
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Student or Teacher display name"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar photo URL"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Account creation ISO timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last profile update ISO timestamp"
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "StudentProfile": {
+      "title": "StudentProfile",
+      "description": "Student Quranic memorization progress and revision status",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Deterministic student unique identifier"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Owning user UID"
+        },
+        "currentSurah": {
+          "type": "number",
+          "description": "Currently active Surah number (1-114)"
+        },
+        "currentAyah": {
+          "type": "number",
+          "description": "Currently active Ayah number"
+        },
+        "totalAyahsMemorized": {
+          "type": "number",
+          "description": "Count of memorized ayahs"
+        },
+        "overallRetentionRate": {
+          "type": "number",
+          "description": "Retention percentage score between 0 and 100"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last progress update"
+        }
+      },
+      "required": ["studentId", "userId"]
+    },
+    "RecitationSession": {
+      "title": "RecitationSession",
+      "description": "Individual recitation evaluation and scoring session",
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Unique session ID"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "User UID who recited"
+        },
+        "surahNumber": {
+          "type": "number",
+          "description": "Surah number recited (1-114)"
+        },
+        "ayahNumber": {
+          "type": "number",
+          "description": "Ayah number recited"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["OPEN_MUSHAF", "BLIND_TEST"],
+          "description": "Recitation mode used"
+        },
+        "accuracyScore": {
+          "type": "number",
+          "description": "Calculated accuracy percentage 0-100"
+        },
+        "tajweedScore": {
+          "type": "number",
+          "description": "Calculated Tajweed score 0-100"
+        },
+        "fluencyScore": {
+          "type": "number",
+          "description": "Calculated fluency score 0-100"
+        },
+        "hesitationCount": {
+          "type": "number",
+          "description": "Number of recorded hesitations"
+        },
+        "errorCount": {
+          "type": "number",
+          "description": "Number of pronunciation/recall errors"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO timestamp of recitation"
+        }
+      },
+      "required": ["sessionId", "userId", "surahNumber", "ayahNumber", "mode"]
+    },
+    "MasteryCertificate": {
+      "title": "MasteryCertificate",
+      "description": "Certified Quranic memorization achievement badge and certificate",
+      "type": "object",
+      "properties": {
+        "certificateId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Unique certificate ID"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Student user ID"
+        },
+        "studentName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Student verified name"
+        },
+        "surahNumber": {
+          "type": "number",
+          "description": "Surah number mastered"
+        },
+        "surahName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Surah Arabic name"
+        },
+        "accuracyScore": {
+          "type": "number",
+          "description": "Mastery grade achieved"
+        },
+        "verificationHash": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Cryptographic verification checksum"
+        },
+        "issuedAt": {
+          "type": "string",
+          "description": "Issue ISO timestamp"
+        }
+      },
+      "required": ["certificateId", "userId", "studentName", "surahNumber", "verificationHash"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile records restricted to authenticated owners"
+    },
+    "/users/{userId}/profiles/{profileId}": {
+      "schema": "StudentProfile",
+      "description": "Student memorization profile and progress metrics"
+    },
+    "/users/{userId}/recitations/{recitationId}": {
+      "schema": "RecitationSession",
+      "description": "Recitation evaluation and test logs"
+    },
+    "/certificates/{certificateId}": {
+      "schema": "MasteryCertificate",
+      "description": "Publicly verifiable completion certificates"
+    }
+  }
+}
