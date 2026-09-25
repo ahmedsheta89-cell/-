@@ -21,6 +21,7 @@ import { TestRunnerView } from './components/TestRunnerView.tsx';
 import { RoadmapView } from './components/RoadmapView.tsx';
 import { StudentProgressDashboard } from './components/StudentProgressDashboard.tsx';
 import { UnifiedClassroomView } from './components/classroom/UnifiedClassroomView.tsx';
+import { TeacherAdminControlDashboard } from './components/admin/TeacherAdminControlDashboard.tsx';
 import {
   Layers,
   BookOpen,
@@ -33,10 +34,12 @@ import {
   Mic,
   GraduationCap,
   TrendingUp,
+  Settings,
 } from 'lucide-react';
 
 type TabId =
   | 'UNIFIED_CLASSROOM'
+  | 'TEACHER_ADMIN'
   | 'STUDENT_PROGRESS'
   | 'REALTIME_TEACHER'
   | 'MEMORIZATION_INTELLIGENCE'
@@ -63,6 +66,7 @@ export default function App() {
 
   const tabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'UNIFIED_CLASSROOM', label: '🎙️ غرفة التسميع الموحدة (مباشر)', icon: Mic },
+    { id: 'TEACHER_ADMIN', label: '🛡️ لوحة التحكم وضوابط الذكاء (Admin)', icon: Settings },
     { id: 'STUDENT_PROGRESS', label: '📊 لوحة تقدم الطالب والتعاهد (Phase 8D)', icon: TrendingUp },
     { id: 'REALTIME_TEACHER', label: 'التفاعل الحي وتوجيه المعلم (Phase 7C)', icon: Sparkles },
     { id: 'MEMORIZATION_INTELLIGENCE', label: 'ذكاء الحفظ والمراجعة (Phase 7D)', icon: GraduationCap },
@@ -116,6 +120,7 @@ export default function App() {
               initialAyah={classroomAyah}
             />
           )}
+          {activeTab === 'TEACHER_ADMIN' && <TeacherAdminControlDashboard />}
           {activeTab === 'STUDENT_PROGRESS' && (
             <StudentProgressDashboard
               onStartRecitation={handleStartRecitationFromDashboard}

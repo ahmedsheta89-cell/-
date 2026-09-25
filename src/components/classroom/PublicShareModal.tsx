@@ -7,7 +7,7 @@ interface PublicShareModalProps {
 
 export const PublicShareModal: React.FC<PublicShareModalProps> = ({ onClose }) => {
   const [copied, setCopied] = useState<boolean>(false);
-  const publicUrl = 'https://ais-pre-qdqetqvxmjhthpqbhl3o4o-100774856489.europe-west1.run.app';
+  const publicUrl = 'https://ahmedsheta89-cell.github.io/-/';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(publicUrl);
