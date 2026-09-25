@@ -32,9 +32,9 @@ export const PublicShareModal: React.FC<PublicShareModalProps> = ({ onClose }) =
             </div>
             <div>
               <h3 className="font-bold text-base text-white font-arabic-heading">
-                رابط المنصة العام للمشاركة والتجربة
+                رابط المنصة العام على GitHub Pages
               </h3>
-              <p className="text-xs text-stone-300">متاح لجميع الطلاب والمعلمين للتجربة المباشرة</p>
+              <p className="text-xs text-stone-300">موقع خارجي دائم ومستقل للتجربة والتسميع المباشر</p>
             </div>
           </div>
           <button
@@ -47,7 +47,7 @@ export const PublicShareModal: React.FC<PublicShareModalProps> = ({ onClose }) =
 
         <div className="p-6 space-y-5">
           <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-            يمكنك مشاركة هذا الرابط العام مع الطلاب، المعلمين، والمشرفين للدخول إلى المنصة وتجربة التسميع الذكي، واختبار الحفظ الغيبي، وإصدار التقارير الموثقة:
+            هذا هو الرابط الخارجي الرسمي لمنصتك (مستقل تماماً ولا يحتاج إلى منصات AI Studio). يمكنك مشاركته مع الطلاب والمشرفين لفتح المصحف والتسميع بالمايكروفون فوراً:
           </p>
 
           <div className="p-3 bg-stone-100 rounded-2xl border border-stone-300 flex items-center justify-between gap-2">

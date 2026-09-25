@@ -143,6 +143,41 @@ export async function signOutCurrentUser(): Promise<void> {
 }
 
 /**
+ * Register or update local/cloud student profile smoothly without popup failure
+ */
+export async function registerOrUpdateStudentProfile(studentName: string): Promise<string> {
+  localStorage.setItem('quran_teacher_student_name', studentName);
+  try {
+    let current = auth.currentUser;
+    if (!current) {
+      const { signInAnonymously } = await import('firebase/auth');
+      const cred = await signInAnonymously(auth);
+      current = cred.user;
+    }
+    if (current) {
+      const { updateProfile } = await import('firebase/auth');
+      await updateProfile(current, { displayName: studentName }).catch(() => {});
+      const userDocRef = doc(db, 'users', current.uid);
+      await setDoc(
+        userDocRef,
+        {
+          uid: current.uid,
+          displayName: studentName,
+          email: `${current.uid.slice(0, 8)}@student.local`,
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+        { merge: true }
+      ).catch(() => {});
+      return current.uid;
+    }
+  } catch (err) {
+    console.info('Offline-first profile established for:', studentName);
+  }
+  return 'student-local-01';
+}
+
+/**
  * Save Student Learning Profile to Firestore
  */
 export async function syncStudentProfileToFirestore(

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, BookOpen, Globe, Share2 } from 'lucide-react';
+import { ShieldCheck, BookOpen, Globe, Share2, ExternalLink } from 'lucide-react';
 import { SyncStatusBadge } from './SyncStatusBadge.tsx';
 import { InstallPwaButton } from './InstallPwaButton.tsx';
 import { FirebaseAuthButton } from './FirebaseAuthButton.tsx';
@@ -36,11 +36,11 @@ export const Header: React.FC = () => {
               <FirebaseAuthButton />
               <button
                 onClick={() => setShowShareModal(true)}
-                className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                title="عرض ونسخ الرابط العام للمنصة"
+                className="px-3 py-1.5 rounded-lg bg-emerald-900 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                title="عرض ونسخ رابط GitHub Pages المباشر للمنصة"
               >
-                <Globe className="w-3.5 h-3.5 text-amber-700" />
-                <span>رابط المنصة العام</span>
+                <Globe className="w-3.5 h-3.5 text-emerald-300" />
+                <span>رابط GitHub Pages العام</span>
               </button>
               <InstallPwaButton />
               <SyncStatusBadge />
