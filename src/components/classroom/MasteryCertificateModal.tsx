@@ -17,9 +17,11 @@ export const MasteryCertificateModal: React.FC<MasteryCertificateModalProps> = (
   accuracyScore,
   tajweedScore,
   onClose,
-  studentNameDefault = 'أحمد بن عبد الله'
+  studentNameDefault,
 }) => {
-  const [studentName, setStudentName] = useState<string>(studentNameDefault);
+  const [studentName, setStudentName] = useState<string>(
+    () => studentNameDefault || (typeof window !== 'undefined' ? localStorage.getItem('quran_teacher_student_name') : null) || 'أحمد بن عبد الله'
+  );
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
