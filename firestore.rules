@@ -123,10 +123,10 @@ service cloud.firestore {
     // Publicly Verifiable Certificates
     match /certificates/{certificateId} {
       allow get: if true; // Publicly verifiable with certificateId
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid; // Only list own certificates
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()); // Own certificates or Admin
       allow create: if isSignedIn() && isValidId(certificateId) && isValidMasteryCertificate(incoming());
       allow update: if false; // Certificates are immutable once created
-      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
     // Test connection document for app initialization check

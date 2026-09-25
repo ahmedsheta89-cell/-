@@ -27,6 +27,9 @@ import {
   query,
   getDocs,
   serverTimestamp,
+  onSnapshot,
+  where,
+  limit,
 } from 'firebase/firestore';
 import firebaseConfig from '../../../firebase-applet-config.json';
 
@@ -34,14 +37,12 @@ import firebaseConfig from '../../../firebase-applet-config.json';
 export const PLATFORM_ADMIN_EMAIL = 'ahmed.sheta89@gmail.com';
 
 /**
- * Checks whether a Firebase User or current identity has Super Admin rights
+ * Checks whether a Firebase User has Super Admin rights.
+ * Strictly checks the authenticated Firebase user email — NO local mock bypass.
  */
 export function isUserAdmin(user: FirebaseUser | null): boolean {
-  if (!user) {
-    const local = localStorage.getItem('quran_teacher_admin_auth');
-    return local === PLATFORM_ADMIN_EMAIL;
-  }
-  return user.email?.toLowerCase().trim() === PLATFORM_ADMIN_EMAIL.toLowerCase();
+  if (!user || !user.email) return false;
+  return user.email.toLowerCase().trim() === PLATFORM_ADMIN_EMAIL.toLowerCase();
 }
 
 // Initialize Firebase App singleton
@@ -375,4 +376,80 @@ export async function saveCertificateToFirestore(cert: {
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, path);
   }
+}
+
+/**
+ * Real-time Listener for Certificates (User's own or Admin all)
+ */
+export function subscribeToCertificates(
+  userId: string | null,
+  onData: (certs: any[]) => void
+): () => void {
+  const certsPath = 'certificates';
+  const q = userId
+    ? query(collection(db, certsPath), where('userId', '==', userId), limit(50))
+    : query(collection(db, certsPath), limit(50));
+
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const items = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      onData(items);
+    },
+    (err) => {
+      handleFirestoreError(err, OperationType.GET, certsPath);
+    }
+  );
+
+  return unsubscribe;
+}
+
+/**
+ * Real-time Listener for Student Recitations
+ */
+export function subscribeToUserRecitations(
+  userId: string,
+  onData: (recitations: any[]) => void
+): () => void {
+  const path = `users/${userId}/recitations`;
+  const q = query(collection(db, path), limit(30));
+
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      onData(items);
+    },
+    (err) => {
+      handleFirestoreError(err, OperationType.GET, path);
+    }
+  );
+
+  return unsubscribe;
+}
+
+/**
+ * Real-time Listener for registered users (Admin only)
+ */
+export function subscribeToAllUsersForAdmin(
+  onData: (users: any[]) => void
+): () => void {
+  const path = 'users';
+  const q = query(collection(db, path), limit(100));
+
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      onData(items);
+    },
+    (err) => {
+      handleFirestoreError(err, OperationType.GET, path);
+    }
+  );
+
+  return unsubscribe;
 }

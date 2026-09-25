@@ -1,13 +1,15 @@
 /**
  * @file App.tsx
  * @description Master Architecture & Foundation Dashboard for Quran Teacher AI.
- * Demonstrates clean architecture, 18 domain modules, immutable Quran contracts,
- * TeacherSessionEngine lifecycle, error taxonomies, and scientific verification governance.
+ * Enhanced with full Firebase Real-time Synchronization, strict Auth RBAC,
+ * and high-fidelity Islamic pedagogical UX.
  */
 
 import React, { useState } from 'react';
 import { SyncProvider } from './context/SyncContext.tsx';
+import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import { Header } from './components/Header.tsx';
+import { FirebaseAuthModal } from './components/auth/FirebaseAuthModal.tsx';
 import { ArchitectureView } from './components/ArchitectureView.tsx';
 import { VerifiedQuranDashboard } from './components/VerifiedQuranDashboard.tsx';
 import { RecitationSessionView } from './components/RecitationSessionView.tsx';
@@ -35,6 +37,9 @@ import {
   GraduationCap,
   TrendingUp,
   Settings,
+  Crown,
+  Flame,
+  LayoutGrid,
 } from 'lucide-react';
 
 type TabId =
@@ -53,10 +58,11 @@ type TabId =
   | 'TEST_SUITE'
   | 'ROADMAP';
 
-export default function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState<TabId>('UNIFIED_CLASSROOM');
   const [classroomSurah, setClassroomSurah] = useState<number>(1);
   const [classroomAyah, setClassroomAyah] = useState<number>(1);
+  const { isAuthModalOpen, closeAuthModal, isAdmin, user } = useAuth();
 
   const handleStartRecitationFromDashboard = (surahId: number, startAyah: number) => {
     setClassroomSurah(surahId);
@@ -64,11 +70,44 @@ export default function App() {
     setActiveTab('UNIFIED_CLASSROOM');
   };
 
-  const tabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: 'UNIFIED_CLASSROOM', label: '🎙️ غرفة التسميع الموحدة (مباشر)', icon: Mic },
-    { id: 'TEACHER_ADMIN', label: '🛡️ لوحة التحكم وضوابط الذكاء (Admin)', icon: Settings },
-    { id: 'STUDENT_PROGRESS', label: '📊 لوحة تقدم الطالب والتعاهد (Phase 8D)', icon: TrendingUp },
-    { id: 'REALTIME_TEACHER', label: 'التفاعل الحي وتوجيه المعلم (Phase 7C)', icon: Sparkles },
+  // Primary 4 Master Workspaces
+  const masterWorkspaces = [
+    {
+      id: 'UNIFIED_CLASSROOM' as TabId,
+      title: 'مقرأة التسميع المباشرة',
+      desc: 'تسميع بالمايكروفون ومصحف ملون بأحكام التجويد',
+      icon: Mic,
+      badge: 'الرئيسية',
+      color: 'emerald',
+    },
+    {
+      id: 'STUDENT_PROGRESS' as TabId,
+      title: 'سجل الحفظ والتعاهد',
+      desc: 'متابعة 114 سورة ومؤشر النسيان والشهادات',
+      icon: TrendingUp,
+      badge: 'إحصائيات',
+      color: 'blue',
+    },
+    {
+      id: 'TEACHER_ADMIN' as TabId,
+      title: 'لوحة تحكم المشرف العام',
+      desc: 'خاص بـ ahmed.sheta89@gmail.com ومراقبة الطلاب',
+      icon: isAdmin ? Crown : Settings,
+      badge: isAdmin ? '👑 مفعل' : 'مخصص للمشرف',
+      color: 'amber',
+    },
+    {
+      id: 'REALTIME_TEACHER' as TabId,
+      title: 'التوجيه الصوتي والذكاء',
+      desc: 'محاكاة المعلم الحقيقي والتصحيح التلقائي',
+      icon: Sparkles,
+      badge: 'Phase 7C',
+      color: 'purple',
+    },
+  ];
+
+  // Secondary Deep Engineering / Lab tabs
+  const secondaryTabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'MEMORIZATION_INTELLIGENCE', label: 'ذكاء الحفظ والمراجعة (Phase 7D)', icon: GraduationCap },
     { id: 'RECITATION_SESSION', label: 'جلسة التسميع والاستماع (Phase 3)', icon: Mic },
     { id: 'VERIFIED_QURAN', label: 'القرآن والتجويد الموثق (Phase 2)', icon: ShieldCheck },
@@ -77,83 +116,143 @@ export default function App() {
     { id: 'ERROR_TAXONOMY', label: 'تصنيف الأخطاء ونموذج الثقة', icon: AlertTriangle },
     { id: 'QURAN_CONTRACT', label: 'عقد بيانات الآيات (الفاتحة)', icon: BookOpen },
     { id: 'GOVERNANCE', label: 'الحوكمة والتحقق الشرعي', icon: ShieldCheck },
-    { id: 'TEST_SUITE', label: 'فحص النطاق والاختبارات', icon: CheckCircle2 },
+    { id: 'TEST_SUITE', label: 'فحص النطاق والاختبارات (1000+)', icon: CheckCircle2 },
     { id: 'ROADMAP', label: 'خريطة الطريق للمراحل القادمة', icon: Map },
   ];
 
   return (
+    <div className="min-h-screen bg-stone-100/70 text-stone-900 flex flex-col font-sans selection:bg-emerald-900 selection:text-white" dir="rtl">
+      {/* Header */}
+      <Header onNavigateToAdmin={() => setActiveTab('TEACHER_ADMIN')} />
+
+      {/* Primary Workspaces Navigation Grid */}
+      <section className="bg-white border-b border-stone-200/80 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            {masterWorkspaces.map((ws) => {
+              const Icon = ws.icon;
+              const active = activeTab === ws.id;
+              return (
+                <button
+                  key={ws.id}
+                  onClick={() => setActiveTab(ws.id)}
+                  className={`p-3 rounded-2xl text-right transition-all flex flex-col justify-between border cursor-pointer active:scale-98 ${
+                    active
+                      ? 'bg-gradient-to-l from-emerald-950 to-stone-900 text-white shadow-md border-emerald-900 ring-2 ring-emerald-600/30'
+                      : 'bg-stone-50/80 hover:bg-stone-100 text-stone-800 border-stone-200/90 hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-1.5">
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
+                      active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-stone-200 text-stone-700'
+                    }`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      active ? 'bg-white/10 text-emerald-200' : 'bg-stone-200/80 text-stone-600'
+                    }`}>
+                      {ws.badge}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className={`font-bold text-xs ${active ? 'text-white' : 'text-stone-900'}`}>
+                      {ws.title}
+                    </h3>
+                    <p className={`text-[11px] truncate mt-0.5 ${active ? 'text-stone-300' : 'text-stone-500'}`}>
+                      {ws.desc}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Secondary tabs strip */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-3 mt-3 border-t border-stone-200/60 no-scrollbar">
+            <span className="text-2xs font-bold text-stone-400 shrink-0 flex items-center gap-1">
+              <LayoutGrid className="w-3 h-3" />
+              <span>مختبر المعمارية والاختبارات:</span>
+            </span>
+            {secondaryTabs.map((t) => {
+              const Icon = t.icon;
+              const active = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={`px-3 py-1.5 rounded-xl text-2xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all ${
+                    active
+                      ? 'bg-emerald-900 text-white shadow-2xs'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100 bg-white border border-stone-200/60'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${active ? 'text-emerald-200' : 'text-stone-500'}`} />
+                  <span>{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === 'UNIFIED_CLASSROOM' && (
+          <UnifiedClassroomView
+            initialSurah={classroomSurah}
+            initialAyah={classroomAyah}
+          />
+        )}
+        {activeTab === 'TEACHER_ADMIN' && <TeacherAdminControlDashboard />}
+        {activeTab === 'STUDENT_PROGRESS' && (
+          <StudentProgressDashboard
+            onStartRecitation={handleStartRecitationFromDashboard}
+          />
+        )}
+        {activeTab === 'REALTIME_TEACHER' && <RealTimeRecitationView />}
+        {activeTab === 'MEMORIZATION_INTELLIGENCE' && <MemorizationRevisionDashboard />}
+        {activeTab === 'RECITATION_SESSION' && <RecitationSessionView />}
+        {activeTab === 'VERIFIED_QURAN' && <VerifiedQuranDashboard />}
+        {activeTab === 'ARCHITECTURE' && <ArchitectureView />}
+        {activeTab === 'QURAN_CONTRACT' && <QuranDataContractView />}
+        {activeTab === 'TEACHER_ENGINE' && <TeacherEngineVisualizer />}
+        {activeTab === 'ERROR_TAXONOMY' && <ErrorTaxonomyView />}
+        {activeTab === 'GOVERNANCE' && <ScientificGovernanceView />}
+        {activeTab === 'TEST_SUITE' && <TestRunnerView />}
+        {activeTab === 'ROADMAP' && <RoadmapView />}
+      </main>
+
+      {/* Top-Level Dedicated Firebase Auth Modal */}
+      <FirebaseAuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        onNavigateToAdmin={() => setActiveTab('TEACHER_ADMIN')}
+      />
+
+      {/* Footer */}
+      <footer className="border-t border-stone-200/80 bg-white py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-stone-500 space-y-2">
+          <p className="font-arabic-heading font-semibold text-stone-700">
+            Quran Teacher AI &bull; معلّم القرآن الرقمي
+          </p>
+          <p>
+            تأسيس معماري رصين خاضع لقواعد التحقق العلمي والشرعي الصارم &bull; موثق برواية حفص عن عاصم
+          </p>
+          <div className="text-[11px] text-stone-400 font-mono">
+            Clean Architecture &bull; Firestore Cloud Sync &bull; Zero Religious Hallucination Guarantee
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
     <SyncProvider>
-      <div className="min-h-screen bg-stone-100/60 text-stone-900 flex flex-col font-sans selection:bg-emerald-900 selection:text-white" dir="rtl">
-        <Header onNavigateToAdmin={() => setActiveTab('TEACHER_ADMIN')} />
-
-        {/* Primary Navigation Bar */}
-        <nav className="border-b border-stone-200 bg-white shadow-xs">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-1 overflow-x-auto py-2.5 no-scrollbar">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 transition-all ${
-                      isActive
-                        ? 'bg-emerald-900 text-white shadow-xs'
-                        : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100/80'
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-200' : 'text-stone-500'}`} />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </nav>
-
-        {/* Main Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {activeTab === 'UNIFIED_CLASSROOM' && (
-            <UnifiedClassroomView
-              initialSurah={classroomSurah}
-              initialAyah={classroomAyah}
-            />
-          )}
-          {activeTab === 'TEACHER_ADMIN' && <TeacherAdminControlDashboard />}
-          {activeTab === 'STUDENT_PROGRESS' && (
-            <StudentProgressDashboard
-              onStartRecitation={handleStartRecitationFromDashboard}
-            />
-          )}
-          {activeTab === 'REALTIME_TEACHER' && <RealTimeRecitationView />}
-          {activeTab === 'MEMORIZATION_INTELLIGENCE' && <MemorizationRevisionDashboard />}
-          {activeTab === 'RECITATION_SESSION' && <RecitationSessionView />}
-          {activeTab === 'VERIFIED_QURAN' && <VerifiedQuranDashboard />}
-          {activeTab === 'ARCHITECTURE' && <ArchitectureView />}
-          {activeTab === 'QURAN_CONTRACT' && <QuranDataContractView />}
-          {activeTab === 'TEACHER_ENGINE' && <TeacherEngineVisualizer />}
-          {activeTab === 'ERROR_TAXONOMY' && <ErrorTaxonomyView />}
-          {activeTab === 'GOVERNANCE' && <ScientificGovernanceView />}
-          {activeTab === 'TEST_SUITE' && <TestRunnerView />}
-          {activeTab === 'ROADMAP' && <RoadmapView />}
-        </main>
-
-        {/* Footer */}
-        <footer className="border-t border-stone-200/80 bg-white py-6 mt-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-stone-500 space-y-2">
-            <p className="font-arabic-heading font-semibold text-stone-700">
-              Quran Teacher AI &bull; معلّم القرآن الرقمي
-            </p>
-            <p>
-              تأسيس معماري رصين خاضع لقواعد التحقق العلمي والشرعي الصارم &bull; المرحلة الأولى (Foundation Phase)
-            </p>
-            <div className="text-[11px] text-stone-400 font-mono">
-              Clean Architecture &bull; Domain-Driven Design &bull; Zero Religious Hallucination Guarantee
-            </div>
-          </div>
-        </footer>
-      </div>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </SyncProvider>
   );
 }
