@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+.font-quran {
+  font-family: 'Amiri Quran', 'Amiri', serif;
+  line-height: 2.2;
+}
+
+.font-arabic-heading {
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  font-weight: 700;
+}

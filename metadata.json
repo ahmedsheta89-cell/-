@@ -1,0 +1,6 @@
+{
+  "name": "Quran Teacher AI - معلّم القرآن الرقمي",
+  "description": "منظومة معمارية متكاملة لتأسيس معلّم القرآن الرقمي: التحقق الديني الصارم، القواعد المحددة، تحليل التلاوة، وطبقة المعلم الذكي.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

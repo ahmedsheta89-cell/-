@@ -1,0 +1,41 @@
+{
+  "id": "/",
+  "name": "معلم القرآن الذكي | Quran Teacher AI",
+  "short_name": "معلم القرآن",
+  "description": "منظومة ذكية متطورة للاستماع لتلاوة القرآن الكريم وتصحيح الأحكام والتجويد كلمة بكلمة ومتابعة الحفظ أوفلاين.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#064e3b",
+  "theme_color": "#064e3b",
+  "dir": "rtl",
+  "lang": "ar",
+  "categories": ["education", "lifestyle", "books"],
+  "icons": [
+    {
+      "src": "/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
