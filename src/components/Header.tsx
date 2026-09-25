@@ -1,12 +1,28 @@
-import React, { useState } from 'react';
-import { ShieldCheck, BookOpen, Globe, Share2, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShieldCheck, BookOpen, Globe, Share2, ExternalLink, Settings, Crown } from 'lucide-react';
 import { SyncStatusBadge } from './SyncStatusBadge.tsx';
 import { InstallPwaButton } from './InstallPwaButton.tsx';
 import { FirebaseAuthButton } from './FirebaseAuthButton.tsx';
 import { PublicShareModal } from './classroom/PublicShareModal.tsx';
+import { isUserAdmin, auth, PLATFORM_ADMIN_EMAIL } from '../infrastructure/firebase/firebaseClient.ts';
+import { onAuthStateChanged } from 'firebase/auth';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onNavigateToAdmin?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onNavigateToAdmin }) => {
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    return isUserAdmin(auth.currentUser);
+  });
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setIsAdmin(isUserAdmin(user));
+    });
+    return () => unsub();
+  }, []);
 
   return (
     <>
@@ -14,8 +30,8 @@ export const Header: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-900 text-emerald-100 flex items-center justify-center font-serif text-xl shadow-xs">
-                <BookOpen className="w-5 h-5 text-emerald-200" />
+              <div className="w-10 h-10 rounded-xl bg-emerald-900 text-emerald-100 flex items-center justify-center font-serif text-xl shadow-xs overflow-hidden">
+                <img src="/favicon.svg" alt="شعار القرآن" className="w-8 h-8 object-contain" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -33,7 +49,19 @@ export const Header: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 self-end sm:self-center">
-              <FirebaseAuthButton />
+              <FirebaseAuthButton onOpenAdminDashboard={onNavigateToAdmin} />
+
+              {isAdmin && onNavigateToAdmin && (
+                <button
+                  onClick={onNavigateToAdmin}
+                  className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 border border-amber-500"
+                  title="الدخول المباشر للوحة تحكم المشرف العام (ahmed.sheta89@gmail.com)"
+                >
+                  <Crown className="w-3.5 h-3.5 text-amber-200" />
+                  <span>لوحة الإدارة</span>
+                </button>
+              )}
+
               <button
                 onClick={() => setShowShareModal(true)}
                 className="px-3 py-1.5 rounded-lg bg-emerald-900 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
@@ -57,6 +85,3 @@ export const Header: React.FC = () => {
     </>
   );
 };
-
-
-

@@ -18,9 +18,12 @@ import {
   Search,
   Filter,
   Save,
-  RotateCcw
+  RotateCcw,
+  Crown,
+  Database,
+  Flame,
 } from 'lucide-react';
-import { auth, db } from '../../infrastructure/firebase/firebaseClient.ts';
+import { auth, db, PLATFORM_ADMIN_EMAIL, isUserAdmin } from '../../infrastructure/firebase/firebaseClient.ts';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 
 interface TeacherGovernanceSettings {
@@ -114,6 +117,16 @@ export const TeacherAdminControlDashboard: React.FC = () => {
             <p className="text-xs sm:text-sm text-stone-300 max-w-2xl leading-relaxed">
               تحكم كامل في معايير التسميع، متابعة تقدم الطلاب لحظياً، وضبط صمامات الأمان الشرعية التي تمنع الذكاء الاصطناعي نهائياً من الهلوسة أو التوليد غير المنضبط.
             </p>
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold font-mono">
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span>المشرف العام المعتمد: {PLATFORM_ADMIN_EMAIL}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-2xs">
+                <Flame className="w-3 h-3 text-amber-400" />
+                <span>قاعدة بيانات Firestore السحابية مفعلة</span>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

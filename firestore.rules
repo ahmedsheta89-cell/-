@@ -17,6 +17,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Super Admin privilege check for platform manager ahmed.sheta89@gmail.com
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'ahmed.sheta89@gmail.com'
+      );
+    }
+
     function isValidId(id) {
       return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
@@ -32,11 +39,12 @@ service cloud.firestore {
     // Validation Blueprint for UserProfile
     function isValidUserProfile(data) {
       return data.keys().hasAll(['uid', 'email']) &&
-        data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'role', 'createdAt', 'updatedAt']) &&
         data.uid is string && data.uid == request.auth.uid &&
         data.email is string && data.email.size() <= 200 &&
         (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
         (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1000)) &&
+        (!('role' in data) || (data.role is string && data.role in ['ADMIN', 'TEACHER', 'STUDENT'])) &&
         (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64)) &&
         (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
     }
@@ -87,16 +95,16 @@ service cloud.firestore {
 
     // Match rules for Users and nested subcollections
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidUserProfile(incoming());
       allow update: if isOwner(userId) && isValidUserProfile(incoming()) && incoming().uid == existing().uid;
       allow delete: if isOwner(userId);
 
       // Subcollection: Profiles
       match /profiles/{profileId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) || isAdmin();
+        allow list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && isValidId(profileId) && isValidStudentProfile(incoming(), userId);
         allow update: if isOwner(userId) && isValidId(profileId) && isValidStudentProfile(incoming(), userId) && incoming().studentId == existing().studentId;
         allow delete: if isOwner(userId);
@@ -104,8 +112,8 @@ service cloud.firestore {
 
       // Subcollection: Recitations
       match /recitations/{recitationId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) || isAdmin();
+        allow list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && isValidId(recitationId) && isValidRecitationSession(incoming(), userId);
         allow update: if isOwner(userId) && isValidId(recitationId) && isValidRecitationSession(incoming(), userId) && incoming().sessionId == existing().sessionId;
         allow delete: if isOwner(userId);

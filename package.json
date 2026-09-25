@@ -1,5 +1,7 @@
 {
-  "name": "react-example",
+  "name": "quran-teacher-ai",
+  "description": "منصة معلّم القرآن الرقمي الذكي - تسميع وتصحيح فوري لأحكام التجويد وحفظ تقدم الطلاب",
+  "homepage": "https://ahmedsheta89-cell.github.io/quran-teacher-ai/",
   "private": true,
   "version": "0.0.0",
   "type": "module",

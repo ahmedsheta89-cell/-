@@ -84,7 +84,7 @@ export default function App() {
   return (
     <SyncProvider>
       <div className="min-h-screen bg-stone-100/60 text-stone-900 flex flex-col font-sans selection:bg-emerald-900 selection:text-white" dir="rtl">
-        <Header />
+        <Header onNavigateToAdmin={() => setActiveTab('TEACHER_ADMIN')} />
 
         {/* Primary Navigation Bar */}
         <nav className="border-b border-stone-200 bg-white shadow-xs">

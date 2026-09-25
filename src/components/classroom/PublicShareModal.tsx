@@ -7,7 +7,8 @@ interface PublicShareModalProps {
 
 export const PublicShareModal: React.FC<PublicShareModalProps> = ({ onClose }) => {
   const [copied, setCopied] = useState<boolean>(false);
-  const publicUrl = 'https://ahmedsheta89-cell.github.io/-/';
+  const publicUrl = 'https://ahmedsheta89-cell.github.io/quran-teacher-ai/';
+  const repoUrl = 'https://github.com/ahmedsheta89-cell/quran-teacher-ai';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(publicUrl);
@@ -75,10 +76,22 @@ export const PublicShareModal: React.FC<PublicShareModalProps> = ({ onClose }) =
               href={publicUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold flex items-center justify-center gap-2 transition-all border border-stone-300"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs"
             >
               <ExternalLink className="w-4 h-4" />
-              <span>فتح الرابط في نافذة جديدة</span>
+              <span>فتح الموقع المباشر</span>
+            </a>
+          </div>
+
+          <div className="pt-1">
+            <a
+              href={repoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-2 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium flex items-center justify-center gap-2 transition-all border border-stone-300"
+            >
+              <Globe className="w-4 h-4 text-stone-500" />
+              <span>مستودع الكود على GitHub: ahmedsheta89-cell/quran-teacher-ai</span>
             </a>
           </div>
 

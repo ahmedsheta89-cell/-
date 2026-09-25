@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <!-- Background Radial Gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#065f46"/>
+      <stop offset="65%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </radialGradient>
+
+    <!-- Gold Gradients -->
+    <linearGradient id="goldGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="30%" stop-color="#F59E0B"/>
+      <stop offset="70%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#78350F"/>
+    </linearGradient>
+
+    <linearGradient id="goldGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FEF3C7"/>
+      <stop offset="50%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </linearGradient>
+
+    <!-- Inner Glow -->
+    <radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Subtle Drop Shadow -->
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Rounded Badge / Circle -->
+  <rect width="128" height="128" rx="36" fill="url(#bgGrad)" stroke="url(#goldGrad1)" stroke-width="2.5"/>
+
+  <!-- Inner Soft Glow -->
+  <circle cx="64" cy="64" r="52" fill="url(#innerGlow)"/>
+
+  <!-- Islamic 8-Pointed Star (Rub el Hizb) Decorative Ring -->
+  <g transform="translate(64,64) scale(0.92)" stroke="url(#goldGrad1)" stroke-width="1.2" fill="none" opacity="0.6">
+    <rect x="-42" y="-42" width="84" height="84" rx="6"/>
+    <rect x="-42" y="-42" width="84" height="84" rx="6" transform="rotate(45)"/>
+  </g>
+
+  <!-- Central Quran Mushaf on Islamic Rihal (Stand) -->
+  <g filter="url(#goldGlow)">
+    <!-- Divine Light Beams from center -->
+    <path d="M64 24 L64 34 M42 30 L48 38 M86 30 L80 38" stroke="url(#goldGrad2)" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+
+    <!-- Open Quran Pages -->
+    <!-- Left Page -->
+    <path d="M63 42 C52 40, 32 42, 24 49 C24 55, 24 74, 24 78 C33 71, 52 69, 63 73 Z" 
+          fill="url(#goldGrad1)" stroke="#FFFBEB" stroke-width="0.8"/>
+    <!-- Left Inner Lines (Representing Holy Script) -->
+    <path d="M30 54 C38 50, 48 50, 57 53 M30 60 C38 56, 48 56, 57 59 M30 66 C38 62, 48 62, 57 65" 
+          stroke="#78350F" stroke-width="1" stroke-linecap="round" opacity="0.75"/>
+
+    <!-- Right Page -->
+    <path d="M65 42 C76 40, 96 42, 104 49 C104 55, 104 74, 104 78 C95 71, 76 69, 65 73 Z" 
+          fill="url(#goldGrad2)" stroke="#FFFBEB" stroke-width="0.8"/>
+    <!-- Right Inner Lines -->
+    <path d="M71 53 C80 50, 90 50, 98 54 M71 59 C80 56, 90 56, 98 60 M71 65 C80 62, 90 62, 98 66" 
+          stroke="#78350F" stroke-width="1" stroke-linecap="round" opacity="0.75"/>
+
+    <!-- Quran Spine & Center Ribbon (Bookmark) -->
+    <path d="M64 42 L64 76" stroke="#92400E" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M64 74 C62 82, 60 88, 64 96 C68 88, 66 82, 64 74" fill="url(#goldGrad2)"/>
+
+    <!-- Ornate Rihal (X-Wooden Stand Base) -->
+    <path d="M40 76 L64 94 L88 76 M46 98 L64 84 L82 98 M34 102 L48 91 M94 102 L80 91" 
+          stroke="url(#goldGrad1)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Small Center Emerald Jewel -->
+    <circle cx="64" cy="64" r="2.5" fill="#10B981" stroke="#FDE68A" stroke-width="1"/>
+  </g>
+</svg>

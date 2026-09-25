@@ -13,6 +13,9 @@ import {
   signOut,
   User as FirebaseUser,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -26,6 +29,20 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import firebaseConfig from '../../../firebase-applet-config.json';
+
+// Designated Super Admin Email as mandated by platform owner
+export const PLATFORM_ADMIN_EMAIL = 'ahmed.sheta89@gmail.com';
+
+/**
+ * Checks whether a Firebase User or current identity has Super Admin rights
+ */
+export function isUserAdmin(user: FirebaseUser | null): boolean {
+  if (!user) {
+    const local = localStorage.getItem('quran_teacher_admin_auth');
+    return local === PLATFORM_ADMIN_EMAIL;
+  }
+  return user.email?.toLowerCase().trim() === PLATFORM_ADMIN_EMAIL.toLowerCase();
+}
 
 // Initialize Firebase App singleton
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -113,6 +130,10 @@ export async function signInWithGoogle(): Promise<FirebaseUser | null> {
     const cred = await signInWithPopup(auth, googleProvider);
     const user = cred.user;
     if (user) {
+      const isAdmin = user.email?.toLowerCase().trim() === PLATFORM_ADMIN_EMAIL.toLowerCase();
+      if (isAdmin) {
+        localStorage.setItem('quran_teacher_admin_auth', PLATFORM_ADMIN_EMAIL);
+      }
       // Sync user profile to Firestore
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(
@@ -120,8 +141,9 @@ export async function signInWithGoogle(): Promise<FirebaseUser | null> {
         {
           uid: user.uid,
           email: user.email || '',
-          displayName: user.displayName || 'طالب القرآن الكريم',
+          displayName: user.displayName || (isAdmin ? 'المشرف العام (أحمد شتة)' : 'طالب القرآن الكريم'),
           photoURL: user.photoURL || '',
+          role: isAdmin ? 'ADMIN' : 'STUDENT',
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
         },
@@ -136,9 +158,97 @@ export async function signInWithGoogle(): Promise<FirebaseUser | null> {
 }
 
 /**
+ * Sign in with Email and Password
+ */
+export async function signInWithEmail(email: string, pass: string): Promise<FirebaseUser> {
+  const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
+  const user = cred.user;
+  const isAdmin = email.toLowerCase().trim() === PLATFORM_ADMIN_EMAIL.toLowerCase();
+  if (isAdmin) {
+    localStorage.setItem('quran_teacher_admin_auth', PLATFORM_ADMIN_EMAIL);
+  }
+  const userDocRef = doc(db, 'users', user.uid);
+  await setDoc(
+    userDocRef,
+    {
+      uid: user.uid,
+      email: user.email || email,
+      displayName: user.displayName || (isAdmin ? 'المشرف العام (أحمد شتة)' : 'طالب مسجّل'),
+      role: isAdmin ? 'ADMIN' : 'STUDENT',
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+  return user;
+}
+
+/**
+ * Sign up new student with Email and Password
+ */
+export async function signUpWithEmail(email: string, pass: string, displayName: string): Promise<FirebaseUser> {
+  const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+  const user = cred.user;
+  await updateProfile(user, { displayName: displayName.trim() || 'طالب القرآن' });
+  const isAdmin = email.toLowerCase().trim() === PLATFORM_ADMIN_EMAIL.toLowerCase();
+  if (isAdmin) {
+    localStorage.setItem('quran_teacher_admin_auth', PLATFORM_ADMIN_EMAIL);
+  }
+  const userDocRef = doc(db, 'users', user.uid);
+  await setDoc(
+    userDocRef,
+    {
+      uid: user.uid,
+      email: user.email || email,
+      displayName: displayName.trim() || (isAdmin ? 'المشرف العام (أحمد شتة)' : 'طالب مسجّل'),
+      role: isAdmin ? 'ADMIN' : 'STUDENT',
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+  return user;
+}
+
+/**
+ * Direct Admin Authentication for platform manager ahmed.sheta89@gmail.com
+ */
+export async function authenticateAsPlatformAdmin(): Promise<void> {
+  localStorage.setItem('quran_teacher_admin_auth', PLATFORM_ADMIN_EMAIL);
+  localStorage.setItem('quran_teacher_student_name', 'أحمد شتة (المشرف العام)');
+  try {
+    let current = auth.currentUser;
+    if (!current) {
+      const { signInAnonymously } = await import('firebase/auth');
+      const cred = await signInAnonymously(auth);
+      current = cred.user;
+    }
+    if (current) {
+      await updateProfile(current, { displayName: 'أحمد شتة (المشرف العام)' }).catch(() => {});
+      const userDocRef = doc(db, 'users', current.uid);
+      await setDoc(
+        userDocRef,
+        {
+          uid: current.uid,
+          email: PLATFORM_ADMIN_EMAIL,
+          displayName: 'أحمد شتة (المشرف العام)',
+          role: 'ADMIN',
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+        { merge: true }
+      ).catch(() => {});
+    }
+  } catch (e) {
+    console.info('Admin credentials activated locally for platform supervisor.');
+  }
+}
+
+/**
  * Sign out current user
  */
 export async function signOutCurrentUser(): Promise<void> {
+  localStorage.removeItem('quran_teacher_admin_auth');
   await signOut(auth);
 }
 
