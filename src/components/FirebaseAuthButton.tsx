@@ -234,38 +234,39 @@ export const FirebaseAuthButton: React.FC<FirebaseAuthButtonProps> = ({ onOpenAd
       {/* Comprehensive Firebase Auth Modal */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/80 backdrop-blur-sm p-3 sm:p-4 md:p-6"
           dir="rtl"
         >
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden text-stone-900 animate-in fade-in zoom-in-95 duration-150 my-auto">
-            {/* Header */}
-            <div className="bg-gradient-to-l from-emerald-950 via-stone-900 to-emerald-900 text-white p-5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-                  <Flame className="w-6 h-6" />
+          <div className="min-h-full flex items-center justify-center py-2 sm:py-4">
+            <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden text-stone-900 flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+              {/* Header */}
+              <div className="bg-gradient-to-l from-emerald-950 via-stone-900 to-emerald-900 text-white p-4 sm:p-5 flex items-center justify-between shrink-0 border-b border-emerald-900/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
+                    <Flame className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-white font-arabic-heading flex items-center gap-2">
+                      <span>تسجيل الدخول السحابي بـ Firebase</span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-3xs font-mono border border-emerald-500/30">
+                        Auth & Firestore
+                      </span>
+                    </h3>
+                    <p className="text-2xs text-stone-300">
+                      حفظ التسميع السحابي، استخراج الشهادات، ولوحة تحكم المشرف العام
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-base text-white font-arabic-heading flex items-center gap-2">
-                    <span>تسجيل الدخول السحابي بـ Firebase</span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-3xs font-mono border border-emerald-500/30">
-                      Auth & Firestore
-                    </span>
-                  </h3>
-                  <p className="text-2xs text-stone-300">
-                    حفظ التسميع السحابي، استخراج الشهادات، ولوحة تحكم المشرف العام
-                  </p>
-                </div>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="p-1.5 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-300 hover:text-white transition-all cursor-pointer shrink-0"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-1.5 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-300 hover:text-white transition-all cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-5">
+              {/* Content */}
+              <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
               {/* Alert Messages */}
               {errorMsg && (
                 <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center gap-2">
@@ -538,6 +539,7 @@ export const FirebaseAuthButton: React.FC<FirebaseAuthButtonProps> = ({ onOpenAd
             </div>
           </div>
         </div>
+      </div>
       )}
     </>
   );

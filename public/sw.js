@@ -1,17 +1,27 @@
 // Quran Teacher AI - Offline Service Worker
-const CACHE_NAME = 'quran-teacher-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/assets/icon-192.png',
-  '/assets/icon-512.png'
-];
+const CACHE_NAME = 'quran-teacher-v2';
 
 self.addEventListener('install', (event) => {
+  const basePath = self.location.pathname.replace(/\/sw\.js$/, '') || '';
+  const STATIC_ASSETS = [
+    basePath + '/',
+    basePath + '/index.html',
+    basePath + '/manifest.json',
+    basePath + '/favicon.svg',
+    basePath + '/assets/icon-192.png',
+    basePath + '/assets/icon-512.png'
+  ];
+
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Safely cache each asset without rejecting the whole install if one fails
+      for (const asset of STATIC_ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (e) {
+          // Ignore individual missing assets
+        }
+      }
     }).then(() => self.skipWaiting())
   );
 });
@@ -31,7 +41,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only handle http/https requests
   if (!event.request.url.startsWith('http')) return;
 
   event.respondWith(
@@ -40,12 +49,12 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
       return fetch(event.request).then((networkResponse) => {
-        // Cache valid successful responses for offline support
         if (
           networkResponse &&
           networkResponse.status === 200 &&
           event.request.method === 'GET' &&
-          !event.request.url.includes('/api/')
+          !event.request.url.includes('/api/') &&
+          !event.request.url.includes('firestore.googleapis.com')
         ) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -54,9 +63,9 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        // If offline and request is for page navigation, return cached root
         if (event.request.mode === 'navigate') {
-          return caches.match('/');
+          const basePath = self.location.pathname.replace(/\/sw\.js$/, '') || '';
+          return caches.match(basePath + '/index.html') || caches.match('./');
         }
       });
     })
