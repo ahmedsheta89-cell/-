@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Globe, Crown } from 'lucide-react';
+import { ShieldCheck, Globe, Crown, RefreshCw } from 'lucide-react';
 import { SyncStatusBadge } from './SyncStatusBadge.tsx';
 import { InstallPwaButton } from './InstallPwaButton.tsx';
 import { FirebaseAuthButton } from './FirebaseAuthButton.tsx';
@@ -12,7 +12,21 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onNavigateToAdmin }) => {
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const { isAdmin } = useAuth();
+
+  const handleForceRefresh = async () => {
+    setRefreshing(true);
+    if (typeof window !== 'undefined' && 'caches' in window) {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      } catch (e) {
+        // Ignore
+      }
+    }
+    window.location.reload();
+  };
 
   return (
     <>
@@ -65,6 +79,16 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateToAdmin }) => {
 
               <InstallPwaButton />
               <SyncStatusBadge />
+
+              <button
+                onClick={handleForceRefresh}
+                className={`p-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 transition-all cursor-pointer border border-stone-200/80 ${
+                  refreshing ? 'animate-spin text-emerald-700' : ''
+                }`}
+                title="تحديث المنصة فوري ومسح الذاكرة المؤقتة (Hard Refresh)"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
 
               <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 rounded-xl text-xs text-stone-700 border border-stone-200/80 font-medium">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />

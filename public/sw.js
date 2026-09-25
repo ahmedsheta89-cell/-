@@ -1,29 +1,9 @@
-// Quran Teacher AI - Offline Service Worker
-const CACHE_NAME = 'quran-teacher-v2';
+// Quran Teacher AI - Resilient Offline Service Worker
+const APP_VERSION = 'v3.2.0';
+const CACHE_NAME = `quran-teacher-${APP_VERSION}`;
 
 self.addEventListener('install', (event) => {
-  const basePath = self.location.pathname.replace(/\/sw\.js$/, '') || '';
-  const STATIC_ASSETS = [
-    basePath + '/',
-    basePath + '/index.html',
-    basePath + '/manifest.json',
-    basePath + '/favicon.svg',
-    basePath + '/assets/icon-192.png',
-    basePath + '/assets/icon-512.png'
-  ];
-
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      // Safely cache each asset without rejecting the whole install if one fails
-      for (const asset of STATIC_ASSETS) {
-        try {
-          await cache.add(asset);
-        } catch (e) {
-          // Ignore individual missing assets
-        }
-      }
-    }).then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -32,6 +12,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('[SW] Purging outdated cache:', key);
             return caches.delete(key);
           }
         })
@@ -43,31 +24,61 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith('http')) return;
 
+  // For HTML documents, navigation, and JS bundles: ALWAYS Network-First
+  // This guarantees users immediately get the fresh deployment!
+  const isDocOrScript =
+    event.request.mode === 'navigate' ||
+    event.request.destination === 'document' ||
+    event.request.destination === 'script' ||
+    event.request.url.endsWith('.html') ||
+    event.request.url.endsWith('.js');
+
+  if (isDocOrScript) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // If network is completely offline, fall back to cached version
+          return caches.match(event.request).then((cached) => {
+            if (cached) return cached;
+            const basePath = self.location.pathname.replace(/\/sw\.js$/, '') || '';
+            return caches.match(basePath + '/index.html') || caches.match('./index.html') || caches.match('./');
+          });
+        })
+    );
+    return;
+  }
+
+  // For static assets (images, fonts, audio): Stale-While-Revalidate
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        if (
-          networkResponse &&
-          networkResponse.status === 200 &&
-          event.request.method === 'GET' &&
-          !event.request.url.includes('/api/') &&
-          !event.request.url.includes('firestore.googleapis.com')
-        ) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          const basePath = self.location.pathname.replace(/\/sw\.js$/, '') || '';
-          return caches.match(basePath + '/index.html') || caches.match('./');
-        }
-      });
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            !event.request.url.includes('firestore.googleapis.com')
+          ) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+        .catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
     })
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
