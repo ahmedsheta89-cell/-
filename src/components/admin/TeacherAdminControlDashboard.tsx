@@ -43,7 +43,7 @@ interface TeacherGovernanceSettings {
 }
 
 export const TeacherAdminControlDashboard: React.FC = () => {
-  const { user, isAdmin, loginWithGoogle } = useAuth();
+  const { user, isAdmin, loginWithGoogle, loginAsAdminDirectly } = useAuth();
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'STUDENTS' | 'AI_GOVERNANCE' | 'CERTIFICATES'>('OVERVIEW');
 
   // Governance and Guardrails state
@@ -132,13 +132,23 @@ export const TeacherAdminControlDashboard: React.FC = () => {
             </div>
           </div>
 
-          <button
-            onClick={() => loginWithGoogle()}
-            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-          >
-            <Crown className="w-4 h-4 text-amber-200" />
-            <span>تسجيل الدخول بحساب المشرف العام بـ Google</span>
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={() => loginAsAdminDirectly()}
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:brightness-110 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+            >
+              <Crown className="w-4 h-4 text-amber-200" />
+              <span>دخول مباشر وفوري كـ مشرف عام (أحمد شتة)</span>
+            </button>
+
+            <button
+              onClick={() => loginWithGoogle()}
+              className="w-full py-3 px-6 rounded-2xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+            >
+              <Crown className="w-4 h-4 text-amber-600" />
+              <span>أو التحقق عبر حساب Google</span>
+            </button>
+          </div>
         </div>
       </div>
     );

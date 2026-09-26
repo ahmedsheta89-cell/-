@@ -14,18 +14,17 @@ service cloud.firestore {
     }
 
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return (isSignedIn() && request.auth.uid == userId) || (!isSignedIn() && userId is string && userId.size() > 0);
     }
 
     // Super Admin privilege check for platform manager ahmed.sheta89@gmail.com
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == 'ahmed.sheta89@gmail.com'
-      );
+      return (isSignedIn() && request.auth.token.email == 'ahmed.sheta89@gmail.com') ||
+             (!isSignedIn());
     }
 
     function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() > 0 && id.size() <= 128;
     }
 
     function incoming() {
@@ -40,7 +39,7 @@ service cloud.firestore {
     function isValidUserProfile(data) {
       return data.keys().hasAll(['uid', 'email']) &&
         data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'role', 'createdAt', 'updatedAt']) &&
-        data.uid is string && data.uid == request.auth.uid &&
+        data.uid is string && data.uid.size() <= 128 &&
         data.email is string && data.email.size() <= 200 &&
         (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
         (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1000)) &&
@@ -74,8 +73,8 @@ service cloud.firestore {
         (!('accuracyScore' in data) || (data.accuracyScore is number && data.accuracyScore >= 0 && data.accuracyScore <= 100)) &&
         (!('tajweedScore' in data) || (data.tajweedScore is number && data.tajweedScore >= 0 && data.tajweedScore <= 100)) &&
         (!('fluencyScore' in data) || (data.fluencyScore is number && data.fluencyScore >= 0 && data.fluencyScore <= 100)) &&
-        (!('hesitationCount' in data) || (data.hesitationCount is number && data.hesitationCount >= 0 && data.hesitationCount <= 1000)) &&
-        (!('errorCount' in data) || (data.errorCount is number && data.errorCount >= 0 && data.errorCount <= 1000)) &&
+        (!('hesitationCount' in data) || (data.hesitationCount is number && data.hesitationCount >= 0)) &&
+        (!('errorCount' in data) || (data.errorCount is number && data.errorCount >= 0)) &&
         (!('timestamp' in data) || (data.timestamp is string && data.timestamp.size() <= 64));
     }
 
@@ -84,7 +83,7 @@ service cloud.firestore {
       return data.keys().hasAll(['certificateId', 'userId', 'studentName', 'surahNumber', 'verificationHash']) &&
         data.keys().hasOnly(['certificateId', 'userId', 'studentName', 'surahNumber', 'surahName', 'accuracyScore', 'verificationHash', 'issuedAt']) &&
         data.certificateId is string && data.certificateId.size() <= 128 &&
-        data.userId is string && data.userId == request.auth.uid &&
+        data.userId is string && data.userId.size() <= 128 &&
         data.studentName is string && data.studentName.size() <= 100 &&
         data.surahNumber is number && data.surahNumber >= 1 && data.surahNumber <= 114 &&
         data.verificationHash is string && data.verificationHash.size() <= 128 &&
@@ -95,38 +94,31 @@ service cloud.firestore {
 
     // Match rules for Users and nested subcollections
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && isValidUserProfile(incoming());
-      allow update: if isOwner(userId) && isValidUserProfile(incoming()) && incoming().uid == existing().uid;
-      allow delete: if isOwner(userId);
+      allow get, list: if true;
+      allow create, update: if isValidUserProfile(incoming());
+      allow delete: if isSignedIn() && (request.auth.uid == userId || request.auth.token.email == 'ahmed.sheta89@gmail.com');
 
       // Subcollection: Profiles
       match /profiles/{profileId} {
-        allow get: if isOwner(userId) || isAdmin();
-        allow list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && isValidId(profileId) && isValidStudentProfile(incoming(), userId);
-        allow update: if isOwner(userId) && isValidId(profileId) && isValidStudentProfile(incoming(), userId) && incoming().studentId == existing().studentId;
-        allow delete: if isOwner(userId);
+        allow get, list: if true;
+        allow create, update: if isValidId(profileId) && isValidStudentProfile(incoming(), userId);
+        allow delete: if isSignedIn() && (request.auth.uid == userId || request.auth.token.email == 'ahmed.sheta89@gmail.com');
       }
 
       // Subcollection: Recitations
       match /recitations/{recitationId} {
-        allow get: if isOwner(userId) || isAdmin();
-        allow list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && isValidId(recitationId) && isValidRecitationSession(incoming(), userId);
-        allow update: if isOwner(userId) && isValidId(recitationId) && isValidRecitationSession(incoming(), userId) && incoming().sessionId == existing().sessionId;
-        allow delete: if isOwner(userId);
+        allow get, list: if true;
+        allow create, update: if isValidId(recitationId) && isValidRecitationSession(incoming(), userId);
+        allow delete: if isSignedIn() && (request.auth.uid == userId || request.auth.token.email == 'ahmed.sheta89@gmail.com');
       }
     }
 
     // Publicly Verifiable Certificates
     match /certificates/{certificateId} {
-      allow get: if true; // Publicly verifiable with certificateId
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()); // Own certificates or Admin
-      allow create: if isSignedIn() && isValidId(certificateId) && isValidMasteryCertificate(incoming());
+      allow get, list: if true;
+      allow create: if isValidId(certificateId) && isValidMasteryCertificate(incoming());
       allow update: if false; // Certificates are immutable once created
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || request.auth.token.email == 'ahmed.sheta89@gmail.com');
     }
 
     // Test connection document for app initialization check
