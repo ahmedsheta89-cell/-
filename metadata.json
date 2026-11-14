@@ -1,0 +1,6 @@
+{
+  "name": "إتقان - معلم القرآن",
+  "description": "معلم القرآن الكريم وموسوعة علومه الموثقة بالتفسير والتجويد والتحفيظ المتباعد والمعلم الذكي",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

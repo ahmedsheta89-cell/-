@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "StudySyncRecord": {
+      "title": "StudySyncRecord",
+      "description": "Synchronized user study progress, Hifz FSRS state, and earned certificates scoped per user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "recordType": {
+          "type": "string",
+          "description": "Category of synchronized record.",
+          "enum": ["lesson_progress", "fsrs_review", "certificate", "bookmark", "error_report"]
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable title of the progress item, surah, or certificate."
+        },
+        "referenceKey": {
+          "type": "string",
+          "description": "Canonical identifier such as surah:ayah, lessonId, or certificate verification code."
+        },
+        "scoreOrCount": {
+          "type": "integer",
+          "description": "Numeric score percentage, streak, or repetition count."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional study notes, FSRS JSON state summary, or scholarly error report details."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when last updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "recordType", "title", "referenceKey", "scoreOrCount", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/study_records/{recordId}": {
+      "schema": {
+        "$ref": "#/entities/StudySyncRecord"
+      },
+      "description": "User-scoped study records for lessons, FSRS Hifz reviews, certificates, bookmarks, and scholarly error reports."
+    }
+  }
+}
