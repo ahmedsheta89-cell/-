@@ -91,13 +91,25 @@ fun AcademyAndMatnScreen(
     certificates: List<CertificateEntity>,
     onSubmitQuizScore: (ScienceLesson, Int) -> Unit,
     onSubmitErrorReport: (String, String, String, String) -> Unit,
+    wirdAssignments: List<com.example.data.local.WirdAssignmentEntity> = com.example.data.local.ItqanPhase3SeedData.buildInitialWirdAssignments(),
+    studentSubmissions: List<com.example.domain.model.StudentSubmissionItem> = com.example.data.local.ItqanPhase3SeedData.initialStudentSubmissions,
+    mistakeLogs: List<com.example.data.local.MistakeLogEntity> = emptyList(),
+    surahCatalog: List<com.example.domain.model.SurahMetadata> = com.example.data.local.ItqanSeedData.surahCatalog,
+    onCreateWirdAssignment: (String, Int, Int, Int, Int, String, String) -> Unit = { _, _, _, _, _, _, _ -> },
+    onCompleteWirdAssignment: (com.example.data.local.WirdAssignmentEntity) -> Unit = {},
+    onSubmitTeacherFeedback: (String, String) -> Unit = { _, _ -> },
+    onIssueStageCertificate: (String) -> Unit = {},
+    onSubmitDiagnosticScore: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var topSectionTab by remember { mutableIntStateOf(0) } // 0 = المسارات العلمية, 1 = المتون (الجزرية والتحفة), 2 = الشهادات
+    // 0 = المسارات العلمية, 1 = المتون, 2 = الشهادات, 3 = مختبر المخارج ١٧, 4 = بوابة المعلم والمحفّظ
+    var topSectionTab by remember { mutableIntStateOf(0) }
     var selectedTrack by remember { mutableStateOf(ScienceTrackId.TAJWEED) }
     var activeLesson by remember { mutableStateOf<ScienceLesson?>(null) }
     var selectedMatnFilter by remember { mutableStateOf("تحفة الأطفال") }
     var hiddenMatnHemistichIds by remember { mutableStateOf(setOf<String>()) }
+    var activePlayingMatnIndex by remember { mutableIntStateOf(-1) }
+    var showDiagnosticQuizDialog by remember { mutableStateOf(false) }
     var lessonForErrorReport by remember { mutableStateOf<ScienceLesson?>(null) }
 
     if (activeLesson != null) {
@@ -120,7 +132,10 @@ fun AcademyAndMatnScreen(
                 .fillMaxSize()
                 .testTag("academy_and_matn_screen")
         ) {
-            TabRow(selectedTabIndex = topSectionTab) {
+            androidx.compose.material3.ScrollableTabRow(
+                selectedTabIndex = topSectionTab,
+                edgePadding = 8.dp
+            ) {
                 Tab(
                     selected = topSectionTab == 0,
                     onClick = { topSectionTab = 0 },
@@ -131,7 +146,7 @@ fun AcademyAndMatnScreen(
                 Tab(
                     selected = topSectionTab == 1,
                     onClick = { topSectionTab = 1 },
-                    text = { Text("المتون العلمية") },
+                    text = { Text("المتون الصوتية") },
                     icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null) },
                     modifier = Modifier.testTag("academy_matn_tab")
                 )
@@ -141,6 +156,20 @@ fun AcademyAndMatnScreen(
                     text = { Text("شهادات الإتمام (${certificates.size.toArabicDigits(userPrefs.useEasternArabicDigits)})") },
                     icon = { Icon(Icons.Default.WorkspacePremium, contentDescription = null) },
                     modifier = Modifier.testTag("academy_certificates_tab")
+                )
+                Tab(
+                    selected = topSectionTab == 3,
+                    onClick = { topSectionTab = 3 },
+                    text = { Text("مختبر المخارج ١٧") },
+                    icon = { Icon(Icons.Default.Quiz, contentDescription = null) },
+                    modifier = Modifier.testTag("academy_makharij_lab_tab")
+                )
+                Tab(
+                    selected = topSectionTab == 4,
+                    onClick = { topSectionTab = 4 },
+                    text = { Text("بوابة المعلم والمحفّظ") },
+                    icon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
+                    modifier = Modifier.testTag("academy_teacher_portal_tab")
                 )
             }
 
@@ -173,18 +202,36 @@ fun AcademyAndMatnScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(
-                                        text = selectedTrack.titleAr,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = IlluminatedGoldBright
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = selectedTrack.subtitleAr,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFFFAF6EE)
-                                    )
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = selectedTrack.titleAr,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = IlluminatedGoldBright
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = selectedTrack.subtitleAr,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color(0xFFFAF6EE)
+                                            )
+                                        }
+                                        Button(
+                                            onClick = { showDiagnosticQuizDialog = true },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = IlluminatedGold,
+                                                contentColor = Color(0xFF06231B)
+                                            ),
+                                            modifier = Modifier.testTag("open_diagnostic_quiz_button")
+                                        ) {
+                                            Text("اختبار تحديد المستوى", fontWeight = FontWeight.Bold)
+                                        }
+                                    }
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text(
                                         text = "المصادر المعتمدة: ${selectedTrack.primarySourcesAr}",
@@ -275,7 +322,7 @@ fun AcademyAndMatnScreen(
                     }
                 }
                 1 -> {
-                    // Classical Matn Study (Tuhfat Al-Atfal & Al-Jazariyyah) with interactive hiding for memorization
+                    // Classical Matn Study (Tuhfat Al-Atfal & Al-Jazariyyah) with Interactive Audio Player & Hifz Hiding
                     val filteredVerses = matnVerses.filter { it.matnName == selectedMatnFilter }
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
@@ -289,23 +336,102 @@ fun AcademyAndMatnScreen(
                             ) {
                                 FilterChip(
                                     selected = selectedMatnFilter == "تحفة الأطفال",
-                                    onClick = { selectedMatnFilter = "تحفة الأطفال" },
+                                    onClick = {
+                                        selectedMatnFilter = "تحفة الأطفال"
+                                        activePlayingMatnIndex = -1
+                                    },
                                     label = { Text("متن تحفة الأطفال للجمزوري") }
                                 )
                                 FilterChip(
                                     selected = selectedMatnFilter == "المقدمة الجزرية",
-                                    onClick = { selectedMatnFilter = "المقدمة الجزرية" },
+                                    onClick = {
+                                        selectedMatnFilter = "المقدمة الجزرية"
+                                        activePlayingMatnIndex = -1
+                                    },
                                     label = { Text("متن المقدمة الجزرية لابن الجزري") }
                                 )
                             }
                         }
 
-                        items(filteredVerses, key = { it.id }) { verse ->
-                            val isSecondHemistichHidden = hiddenMatnHemistichIds.contains(verse.id)
+                        // Interactive Matn Audio Player & Memorization Control Card
+                        item {
                             Card(
                                 shape = RoundedCornerShape(18.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                                border = BorderStroke(1.dp, IlluminatedGold.copy(alpha = 0.5f)),
+                                colors = CardDefaults.cardColors(containerColor = RoyalEmerald),
+                                border = BorderStroke(1.2.dp, IlluminatedGold),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(14.dp)
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "مشغل المتون العلمية التفاعلي ($selectedMatnFilter)",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = IlluminatedGoldBright
+                                        )
+                                        Text(
+                                            text = if (activePlayingMatnIndex in filteredVerses.indices)
+                                                "جاري تلاوة وشرح البيت (${filteredVerses[activePlayingMatnIndex].verseNumber.toArabicDigits(userPrefs.useEasternArabicDigits)})..."
+                                            else "استمع للأبيات مع التظليل التزامني أو أخفِ الشطر الثاني لاختبار حفظك",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFFFAF6EE)
+                                        )
+                                    }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Button(
+                                            onClick = {
+                                                activePlayingMatnIndex = if (activePlayingMatnIndex + 1 < filteredVerses.size) {
+                                                    activePlayingMatnIndex + 1
+                                                } else {
+                                                    0
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = IlluminatedGold,
+                                                contentColor = Color(0xFF06231B)
+                                            ),
+                                            modifier = Modifier.testTag("play_next_matn_verse_button")
+                                        ) {
+                                            Text(if (activePlayingMatnIndex == -1) "تشغيل المتن" else "البيت التالي")
+                                        }
+                                        OutlinedButton(
+                                            onClick = {
+                                                hiddenMatnHemistichIds = if (hiddenMatnHemistichIds.size == filteredVerses.size) {
+                                                    emptySet()
+                                                } else {
+                                                    filteredVerses.map { it.id }.toSet()
+                                                }
+                                            }
+                                        ) {
+                                            Text(
+                                                if (hiddenMatnHemistichIds.size == filteredVerses.size) "إظهار الكل" else "اختبار المتن",
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        items(filteredVerses, key = { it.id }) { verse ->
+                            val isSecondHemistichHidden = hiddenMatnHemistichIds.contains(verse.id)
+                            val isCurrentlyPlaying = activePlayingMatnIndex in filteredVerses.indices &&
+                                filteredVerses[activePlayingMatnIndex].id == verse.id
+                            Card(
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isCurrentlyPlaying) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                                ),
+                                border = BorderStroke(
+                                    if (isCurrentlyPlaying) 2.dp else 1.dp,
+                                    if (isCurrentlyPlaying) IlluminatedGoldBright else IlluminatedGold.copy(alpha = 0.5f)
+                                ),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
@@ -474,8 +600,41 @@ fun AcademyAndMatnScreen(
                         }
                     }
                 }
+                3 -> {
+                    // Phase 3: Interactive 17 Makharij Anatomical Lab
+                    com.example.ui.components.MakharijAnatomicalLabView(
+                        useEasternDigits = userPrefs.useEasternArabicDigits
+                    )
+                }
+                4 -> {
+                    // Phase 3: Teacher & Muhaffiz Supervision Portal
+                    com.example.ui.components.TeacherMuhaffizPortalView(
+                        studentName = userPrefs.studentName,
+                        streakDays = userPrefs.streakDays,
+                        completedLessonsCount = lessonProgress.count { it.completed },
+                        certificatesCount = certificates.size,
+                        memorizedVersesCount = allCachedAyahs.count { it.isMemorized || it.recitationCount > 0 },
+                        useEasternDigits = userPrefs.useEasternArabicDigits,
+                        wirdAssignments = wirdAssignments,
+                        studentSubmissions = studentSubmissions,
+                        mistakeLogs = mistakeLogs,
+                        surahCatalog = surahCatalog,
+                        onCreateWirdAssignment = onCreateWirdAssignment,
+                        onCompleteWirdAssignment = onCompleteWirdAssignment,
+                        onSubmitTeacherFeedback = onSubmitTeacherFeedback,
+                        onIssueStageCertificate = onIssueStageCertificate
+                    )
+                }
             }
         }
+    }
+
+    if (showDiagnosticQuizDialog) {
+        com.example.ui.components.DiagnosticPlacementQuizDialog(
+            useEasternDigits = userPrefs.useEasternArabicDigits,
+            onDismiss = { showDiagnosticQuizDialog = false },
+            onSubmitDiagnosticScore = onSubmitDiagnosticScore
+        )
     }
 
     lessonForErrorReport?.let { targetLesson ->

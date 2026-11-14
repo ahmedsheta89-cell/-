@@ -112,4 +112,28 @@ class ExampleUnitTest {
         assertTrue(com.example.data.local.ItqanPhase2SeedData.mutashabihatRules.isNotEmpty())
         assertTrue(com.example.data.local.ItqanPhase2SeedData.gharibLexiconEntries.isNotEmpty())
     }
+
+    @Test
+    fun phase3SeventeenMakharijAtlasAndTeacherReport_isCompleteAndVerified() {
+        val atlas = com.example.data.local.ItqanPhase3SeedData.seventeenMakharijAtlas
+        assertEquals(17, atlas.size)
+        assertTrue(atlas.any { it.generalRegionId == "jawf" })
+        assertTrue(atlas.any { it.generalRegionId == "halq" })
+        assertTrue(atlas.any { it.generalRegionId == "lisan" })
+        assertTrue(atlas.any { it.generalRegionId == "shafatan" })
+        assertTrue(atlas.any { it.generalRegionId == "khayshoom" })
+
+        val report = com.example.data.local.ItqanPhase3SeedData.buildWeeklyStudentReportText(
+            studentName = "أحمد شتا",
+            streakDays = 10,
+            completedLessonsCount = 6,
+            certificatesCount = 2,
+            memorizedVersesCount = 25,
+            unresolvedMistakes = emptyList(),
+            activeWirdAssignments = com.example.data.local.ItqanPhase3SeedData.buildInitialWirdAssignments()
+        )
+        assertTrue(report.contains("أحمد شتا"))
+        assertTrue(report.contains("تقرير الأداء الأسبوعي"))
+        assertEquals(4, com.example.data.local.ItqanPhase3SeedData.qiraatNarratorProfiles.size)
+    }
 }

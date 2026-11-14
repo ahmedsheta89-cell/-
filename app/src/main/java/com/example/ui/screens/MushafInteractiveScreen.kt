@@ -115,11 +115,17 @@ fun MushafInteractiveScreen(
     onCycleSleepTimer: () -> Unit,
     onSelectReciter: (ReciterProfile) -> Unit,
     onSubmitErrorReport: (String, String, String, String) -> Unit,
+    selectedQiraatNarratorId: String = "hafs_asim",
+    tadabburJournals: List<com.example.data.local.TadabburJournalEntity> = com.example.data.local.ItqanPhase3SeedData.buildInitialTadabburJournal(),
+    onSelectQiraatNarrator: (String) -> Unit = {},
+    onSaveTadabburJournalEntry: (Int, String, Int, String, String, String, String, Int) -> Unit = { _, _, _, _, _, _, _, _ -> },
     modifier: Modifier = Modifier
 ) {
     var showReciterDialog by remember { mutableStateOf(false) }
     var ayahForErrorReport by remember { mutableStateOf<AyahEntity?>(null) }
     var encyclopediaExplorerTab by remember { mutableStateOf<Int?>(null) }
+    var showColoredQiraatBar by remember { mutableStateOf(false) }
+    var showKhalwahTadabburSheet by remember { mutableStateOf(false) }
 
     val selectedSurahMeta = surahCatalog.find { it.number == selectedSurahNumber } ?: surahCatalog.first()
     val displayedAyahs = if (searchQuery.isNotBlank()) searchResults else currentSurahAyahs
@@ -259,6 +265,30 @@ fun MushafInteractiveScreen(
                     modifier = Modifier.testTag("open_encyclopedia_lexicon_chip")
                 )
             }
+            item {
+                FilterChip(
+                    selected = showColoredQiraatBar,
+                    onClick = { showColoredQiraatBar = !showColoredQiraatBar },
+                    label = { Text("مصحف القراءات الملون") },
+                    modifier = Modifier.testTag("toggle_colored_qiraat_bar_chip")
+                )
+            }
+            item {
+                FilterChip(
+                    selected = showKhalwahTadabburSheet,
+                    onClick = { showKhalwahTadabburSheet = true },
+                    label = { Text("خلوة التدبر ودفتر الخواطر") },
+                    modifier = Modifier.testTag("open_mushaf_khalwah_chip")
+                )
+            }
+        }
+
+        if (showColoredQiraatBar) {
+            com.example.ui.components.ColoredQiraatMushafRibbon(
+                selectedNarratorId = selectedQiraatNarratorId,
+                onSelectNarrator = onSelectQiraatNarrator,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
 
         if (isDownloadingSurah) {
@@ -620,6 +650,16 @@ fun MushafInteractiveScreen(
             gharibLexicon = com.example.data.local.ItqanPhase2SeedData.gharibLexiconEntries,
             useEasternDigits = userPrefs.useEasternArabicDigits,
             onDismiss = { encyclopediaExplorerTab = null }
+        )
+    }
+
+    if (showKhalwahTadabburSheet) {
+        com.example.ui.components.QuranicKhalwahAndTadabburSheet(
+            currentAyah = displayedAyahs.firstOrNull(),
+            tadabburJournals = tadabburJournals,
+            useEasternDigits = userPrefs.useEasternArabicDigits,
+            onSaveJournalEntry = onSaveTadabburJournalEntry,
+            onDismiss = { showKhalwahTadabburSheet = false }
         )
     }
 }

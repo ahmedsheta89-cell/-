@@ -86,9 +86,19 @@ class ItqanViewModel(
     val qiraatComparisons = com.example.data.local.ItqanPhase2SeedData.qiraatComparisons
     val gharibLexiconEntries = com.example.data.local.ItqanPhase2SeedData.gharibLexiconEntries
     val makharijDictionary = com.example.data.local.ItqanPhase2SeedData.makharijDictionary
+    val seventeenMakharijAtlas = com.example.data.local.ItqanPhase3SeedData.seventeenMakharijAtlas
+    val teacherClassrooms = com.example.data.local.ItqanPhase3SeedData.teacherClassrooms
+    val qiraatNarratorProfiles = com.example.data.local.ItqanPhase3SeedData.qiraatNarratorProfiles
+    val diagnosticPlacementQuestions = com.example.data.local.ItqanPhase3SeedData.diagnosticPlacementQuestions
 
     private val _groupHalqahs = MutableStateFlow(com.example.data.local.ItqanPhase2SeedData.defaultGroupHalqahs)
     val groupHalqahs: StateFlow<List<com.example.domain.model.CloudGroupHalqah>> = _groupHalqahs.asStateFlow()
+
+    private val _studentSubmissions = MutableStateFlow(com.example.data.local.ItqanPhase3SeedData.initialStudentSubmissions)
+    val studentSubmissions: StateFlow<List<com.example.domain.model.StudentSubmissionItem>> = _studentSubmissions.asStateFlow()
+
+    private val _selectedQiraatNarratorId = MutableStateFlow("hafs_asim")
+    val selectedQiraatNarratorId: StateFlow<String> = _selectedQiraatNarratorId.asStateFlow()
 
     val userPrefs: StateFlow<UserPreferencesState> = localRepository.userPreferencesFlow
         .stateIn(
@@ -170,6 +180,20 @@ class ItqanViewModel(
         )
 
     val khatmahPlans: StateFlow<List<com.example.data.local.KhatmahPlanEntity>> = localRepository.observeKhatmahPlans()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyList()
+        )
+
+    val tadabburJournals: StateFlow<List<com.example.data.local.TadabburJournalEntity>> = localRepository.observeTadabburJournals()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyList()
+        )
+
+    val wirdAssignments: StateFlow<List<com.example.data.local.WirdAssignmentEntity>> = localRepository.observeWirdAssignments()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
@@ -622,6 +646,186 @@ class ItqanViewModel(
             } else {
                 "بارك الله فيك! تم توثيق وردك اليومي في «${target.titleAr}» (+٥٠ نقطة إتقان)"
             }
+        }
+    }
+
+    // Phase 3: Colored Qira'at Narrator Selection
+    fun selectQiraatNarrator(narratorId: String) {
+        _selectedQiraatNarratorId.value = narratorId
+        val profile = qiraatNarratorProfiles.find { it.narratorId == narratorId }
+        if (profile != null) {
+            _statusBannerMessage.value = "تم تفعيل عرض مصحف القراءات الملون: ${profile.shortLabelAr}"
+        }
+    }
+
+    // Phase 3: Quranic Khalwah & Tadabbur Journal Actions
+    fun saveTadabburJournalEntry(
+        surahNumber: Int,
+        surahNameAr: String,
+        ayahNumber: Int,
+        uthmaniText: String,
+        meaningFromTafsirAr: String,
+        hidayahInsightAr: String,
+        practicalActionPlanAr: String,
+        khalwahMinutes: Int
+    ) {
+        if (hidayahInsightAr.isBlank() && practicalActionPlanAr.isBlank()) return
+        viewModelScope.launch {
+            val entry = com.example.data.local.TadabburJournalEntity(
+                journalId = "tadabbur_${surahNumber}_${ayahNumber}_${System.currentTimeMillis()}",
+                compositeKey = "$surahNumber:$ayahNumber",
+                surahNumber = surahNumber,
+                surahNameAr = surahNameAr,
+                ayahNumber = ayahNumber,
+                uthmaniText = uthmaniText,
+                meaningFromTafsirAr = meaningFromTafsirAr.ifBlank { "تدبر معنى الآية الكريمة من التفاسير المعتمدة" },
+                hidayahInsightAr = hidayahInsightAr.trim(),
+                practicalActionPlanAr = practicalActionPlanAr.trim(),
+                khalwahMinutes = khalwahMinutes.coerceIn(5, 120),
+                sourceCitation = "دفتر الخلوة القرآنية والتدبر المنهجي"
+            )
+            localRepository.saveTadabburJournal(entry)
+            syncToCloudIfAuthenticated(
+                recordType = "bookmark",
+                title = "تدبر سورة $surahNameAr ($ayahNumber)",
+                referenceKey = entry.compositeKey,
+                scoreOrCount = khalwahMinutes.toLong(),
+                notes = "${entry.hidayahInsightAr} | العمل: ${entry.practicalActionPlanAr}"
+            )
+            _statusBannerMessage.value = "تم حفظ تدوينتك في دفتر التدبرات والخلوة القرآنية ومزامنتها"
+        }
+    }
+
+    // Phase 3: Teacher & Muhaffiz Portal Actions
+    fun createTeacherWirdAssignment(
+        classroomId: String,
+        surahNumber: Int,
+        ayahStart: Int,
+        ayahEnd: Int,
+        requiredRepetitions: Int,
+        focusTajweedRuleAr: String,
+        teacherInstructionsAr: String
+    ) {
+        viewModelScope.launch {
+            val classroom = teacherClassrooms.find { it.classroomId == classroomId } ?: teacherClassrooms.first()
+            val surahMeta = surahCatalog.find { it.number == surahNumber }
+            val surahNameAr = surahMeta?.nameAr ?: "الفاتحة"
+            val assignment = com.example.data.local.WirdAssignmentEntity(
+                assignmentId = "assign_${surahNumber}_${ayahStart}_${System.currentTimeMillis()}",
+                classroomId = classroom.classroomId,
+                classroomTitleAr = classroom.titleAr,
+                supervisorNameAr = classroom.supervisorNameAr,
+                surahNumber = surahNumber,
+                surahNameAr = surahNameAr,
+                ayahStart = ayahStart.coerceAtLeast(1),
+                ayahEnd = ayahEnd.coerceAtLeast(ayahStart),
+                requiredRepetitions = requiredRepetitions.coerceIn(1, 30),
+                focusTajweedRuleAr = focusTajweedRuleAr.ifBlank { "تحقيق مخارج الحروف ومقادير المدود" },
+                teacherInstructionsAr = teacherInstructionsAr.ifBlank { "تسميع المقطع في حلقة الشيخ الصوتية الحية" },
+                completedStudentsCount = 1,
+                totalStudentsCount = classroom.studentsCount,
+                isCompletedByCurrentStudent = false,
+                dueDateLabelAr = "خلال ٣ أيام"
+            )
+            localRepository.saveWirdAssignment(assignment)
+            syncToCloudIfAuthenticated(
+                recordType = "lesson_progress",
+                title = "تكليف ورد جديد: سورة $surahNameAr ($ayahStart-$ayahEnd)",
+                referenceKey = assignment.assignmentId,
+                scoreOrCount = requiredRepetitions.toLong(),
+                notes = "${classroom.titleAr} | ${assignment.focusTajweedRuleAr}"
+            )
+            _statusBannerMessage.value = "تم إصدار تكليف الورد الجديد لطلاب «${classroom.titleAr}»"
+        }
+    }
+
+    fun markWirdAssignmentCompleted(assignment: com.example.data.local.WirdAssignmentEntity) {
+        viewModelScope.launch {
+            val updated = assignment.copy(
+                isCompletedByCurrentStudent = true,
+                completedStudentsCount = (assignment.completedStudentsCount + 1).coerceAtMost(assignment.totalStudentsCount),
+                dueDateLabelAr = "مكتمل ✓"
+            )
+            localRepository.saveWirdAssignment(updated)
+            syncToCloudIfAuthenticated(
+                recordType = "lesson_progress",
+                title = "إتمام تكليف المعلم: سورة ${assignment.surahNameAr}",
+                referenceKey = assignment.assignmentId,
+                scoreOrCount = 100L,
+                notes = "أتم الطالب الورد المكلف به (${assignment.requiredRepetitions} تكرارات)"
+            )
+            _statusBannerMessage.value = "تقبل الله! تم توثيق إنجاز تكليف المعلم في سورة ${assignment.surahNameAr}"
+        }
+    }
+
+    fun submitTeacherFeedbackOnStudentSubmission(
+        submissionId: String,
+        feedbackNote: String
+    ) {
+        if (feedbackNote.isBlank()) return
+        viewModelScope.launch {
+            val list = _studentSubmissions.value
+            val target = list.find { it.submissionId == submissionId } ?: return@launch
+            val updated = target.copy(
+                teacherFeedbackNote = feedbackNote.trim(),
+                isReviewedByTeacher = true
+            )
+            _studentSubmissions.value = list.map { if (it.submissionId == submissionId) updated else it }
+            syncToCloudIfAuthenticated(
+                recordType = "lesson_progress",
+                title = "ملاحظة المعلم للطالب: ${target.studentNameAr}",
+                referenceKey = submissionId,
+                scoreOrCount = target.autoAccuracyPercent.toLong(),
+                notes = feedbackNote.trim()
+            )
+            _statusBannerMessage.value = "تم إرسال الملاحظة التجويدية الموثقة للطالب «${target.studentNameAr}»"
+        }
+    }
+
+    fun issueStageCertificateForStudentSubmission(submissionId: String) {
+        viewModelScope.launch {
+            val list = _studentSubmissions.value
+            val target = list.find { it.submissionId == submissionId } ?: return@launch
+            val updated = target.copy(
+                isReviewedByTeacher = true,
+                stageCertificateIssued = true
+            )
+            _studentSubmissions.value = list.map { if (it.submissionId == submissionId) updated else it }
+
+            val cert = certificateIssuer.createCertificate(
+                studentName = target.studentNameAr,
+                track = ScienceTrackId.TAJWEED,
+                scorePercent = target.autoAccuracyPercent.coerceAtLeast(85)
+            )
+            if (cert != null) {
+                localRepository.saveCertificate(cert)
+                syncToCloudIfAuthenticated(
+                    recordType = "certificate",
+                    title = "شهادة إتمام مرحلية: ${target.studentNameAr}",
+                    referenceKey = cert.verificationCode,
+                    scoreOrCount = cert.scorePercent.toLong(),
+                    notes = cert.qrPayload
+                )
+                _statusBannerMessage.value = "تم اعتماد وإصدار شهادة الإتمام المرحلية للطالب «${target.studentNameAr}» برمز (${cert.verificationCode})"
+            }
+        }
+    }
+
+    fun submitDiagnosticPlacementScore(scorePercent: Int) {
+        viewModelScope.launch {
+            val recommendedLevel = when {
+                scorePercent >= 85 -> "المستوى المتقدم (القراءات العشر وتحقيق المخارج)"
+                scorePercent >= 60 -> "المستوى المتوسط (تحفة الأطفال والمقدمة الجزرية)"
+                else -> "المستوى التأسيسي (مخارج الحروف الـ ١٧ وأحكام النون الساكنة)"
+            }
+            syncToCloudIfAuthenticated(
+                recordType = "lesson_progress",
+                title = "الاختبار التشخيصي لتحديد المستوى",
+                referenceKey = "diagnostic_placement_quiz",
+                scoreOrCount = scorePercent.toLong(),
+                notes = "المسار الموصى به: $recommendedLevel"
+            )
+            _statusBannerMessage.value = "نتيجة الاختبار التشخيصي: $scorePercent% — المسار الموصى به: $recommendedLevel"
         }
     }
 

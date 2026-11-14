@@ -289,3 +289,86 @@ data class CloudGroupHalqah(
     val leaderboardPreview: List<Pair<String, Int>>
 )
 
+/**
+ * Phase 3: Interactive 17 Makharij Anatomical Point on Imam Ibn Al-Jazari's system.
+ */
+data class AnatomicalMakhrajPoint(
+    val makhrajNumber: Int,            // 1..17
+    val generalRegionId: String,       // "jawf", "halq", "lisan", "shafatan", "khayshoom"
+    val generalRegionAr: String,       // الجوف | الحلق | اللسان | الشفتان | الخيشوم
+    val specificTitleAr: String,       // e.g. "أقصى الحلق", "طرف اللسان مع أصول الثنايا العليا"
+    val lettersAr: String,             // e.g. "ء ، هـ"
+    val normX: Float,                  // 0.0f..1.0f relative X on sagittal vocal tract canvas
+    val normY: Float,                  // 0.0f..1.0f relative Y on sagittal vocal tract canvas
+    val airflowAngleDeg: Float,        // Direction of sound/air projection
+    val hasNasalGhunnah: Boolean = false,
+    val sifaatSummaryAr: String,
+    val mechanismExplanationAr: String,
+    val jazariyyahEvidenceAr: String,
+    val practiceWordUthmani: String,
+    val commonErrorWarningAr: String
+)
+
+/**
+ * Phase 3: Teacher & Muhaffiz Portal Classroom model.
+ */
+data class TeacherClassroom(
+    val classroomId: String,
+    val titleAr: String,
+    val levelAr: String,
+    val supervisorNameAr: String,
+    val studentsCount: Int,
+    val activeWirdSummaryAr: String,
+    val scheduleAr: String
+)
+
+/**
+ * Phase 3: Student Voice Recitation Submission for Teacher Review.
+ */
+data class StudentSubmissionItem(
+    val submissionId: String,
+    val studentNameAr: String,
+    val classroomId: String,
+    val classroomTitleAr: String,
+    val surahNumber: Int,
+    val surahNameAr: String,
+    val ayahRangeAr: String,
+    val recitedSnippetUthmani: String,
+    val autoAccuracyPercent: Int,
+    val waveformSamples: List<Float>,
+    val durationSeconds: Int,
+    val focusMistakeWord: String,
+    val teacherFeedbackNote: String,
+    val tajweedCategoryBadgeAr: String,
+    val isReviewedByTeacher: Boolean,
+    val stageCertificateIssued: Boolean = false
+)
+
+/**
+ * Phase 3: Colored Qira'at Narrator Profile for Comparative Mushaf View.
+ */
+data class QiraatNarratorColorProfile(
+    val narratorId: String,
+    val shortLabelAr: String,
+    val imamAndRawiAr: String,
+    val tariqAr: String,
+    val badgeColorHex: Long,
+    val usoolMethodologyAr: String,
+    val keyExampleDifferenceAr: String,
+    val shatibiyyahEvidenceAr: String
+)
+
+/**
+ * Phase 3: Mushaf Mastery Heatmap Cell per Surah.
+ */
+data class SurahHeatmapCell(
+    val surahNumber: Int,
+    val surahNameAr: String,
+    val juzNumber: Int,
+    val masteryStatus: Int, // 0 = لم يبدأ, 1 = يحتاج مراجعة عاجلة, 2 = قيد التثبيت, 3 = متقن راسخ
+    val stabilityDays: Double,
+    val accuracyPercent: Int,
+    val activeMistakesCount: Int
+)
+
+

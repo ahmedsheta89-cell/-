@@ -242,6 +242,10 @@ fun ItqanMainShell(
     val mistakeLogs by viewModel.mistakeLogs.collectAsStateWithLifecycle()
     val khatmahPlans by viewModel.khatmahPlans.collectAsStateWithLifecycle()
     val groupHalqahs by viewModel.groupHalqahs.collectAsStateWithLifecycle()
+    val tadabburJournals by viewModel.tadabburJournals.collectAsStateWithLifecycle()
+    val wirdAssignments by viewModel.wirdAssignments.collectAsStateWithLifecycle()
+    val studentSubmissions by viewModel.studentSubmissions.collectAsStateWithLifecycle()
+    val selectedQiraatNarratorId by viewModel.selectedQiraatNarratorId.collectAsStateWithLifecycle()
     val scholarUiState by viewModel.scholarUiState.collectAsStateWithLifecycle()
     val scholarHistory by viewModel.scholarHistory.collectAsStateWithLifecycle()
     val voiceReport by viewModel.voiceReport.collectAsStateWithLifecycle()
@@ -457,11 +461,16 @@ fun ItqanMainShell(
                                     },
                                     khatmahPlans = khatmahPlans,
                                     mistakeLogs = mistakeLogs,
+                                    allCachedAyahs = allCachedAyahs,
+                                    tadabburJournals = tadabburJournals,
                                     onLogDailyKhatmahWird = { plan ->
                                         viewModel.logDailyKhatmahWirdProgress(plan)
                                     },
                                     onCreateNewKhatmahPlan = { title, type, days ->
                                         viewModel.createKhatmahPlan(title, type, days)
+                                    },
+                                    onSaveTadabburJournalEntry = { sNum, sName, aNum, uth, taf, hid, act, min ->
+                                        viewModel.saveTadabburJournalEntry(sNum, sName, aNum, uth, taf, hid, act, min)
                                     }
                                 )
                             }
@@ -501,6 +510,14 @@ fun ItqanMainShell(
                                     onSelectReciter = { reciter -> viewModel.audioPlayer.selectReciter(reciter) },
                                     onSubmitErrorReport = { screen, refKey, itemTitle, details ->
                                         viewModel.submitContentErrorReport(screen, refKey, itemTitle, details)
+                                    },
+                                    selectedQiraatNarratorId = selectedQiraatNarratorId,
+                                    tadabburJournals = tadabburJournals,
+                                    onSelectQiraatNarrator = { narratorId ->
+                                        viewModel.selectQiraatNarrator(narratorId)
+                                    },
+                                    onSaveTadabburJournalEntry = { sNum, sName, aNum, uth, taf, hid, act, min ->
+                                        viewModel.saveTadabburJournalEntry(sNum, sName, aNum, uth, taf, hid, act, min)
                                     }
                                 )
                             }
@@ -518,6 +535,25 @@ fun ItqanMainShell(
                                     },
                                     onSubmitErrorReport = { screen, refKey, itemTitle, details ->
                                         viewModel.submitContentErrorReport(screen, refKey, itemTitle, details)
+                                    },
+                                    wirdAssignments = wirdAssignments,
+                                    studentSubmissions = studentSubmissions,
+                                    mistakeLogs = mistakeLogs,
+                                    surahCatalog = viewModel.surahCatalog,
+                                    onCreateWirdAssignment = { cId, sNum, aStart, aEnd, reps, rule, instr ->
+                                        viewModel.createTeacherWirdAssignment(cId, sNum, aStart, aEnd, reps, rule, instr)
+                                    },
+                                    onCompleteWirdAssignment = { assign ->
+                                        viewModel.markWirdAssignmentCompleted(assign)
+                                    },
+                                    onSubmitTeacherFeedback = { subId, note ->
+                                        viewModel.submitTeacherFeedbackOnStudentSubmission(subId, note)
+                                    },
+                                    onIssueStageCertificate = { subId ->
+                                        viewModel.issueStageCertificateForStudentSubmission(subId)
+                                    },
+                                    onSubmitDiagnosticScore = { pct ->
+                                        viewModel.submitDiagnosticPlacementScore(pct)
                                     }
                                 )
                             }

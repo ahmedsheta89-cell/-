@@ -158,6 +158,48 @@ data class KhatmahPlanEntity(
     val lastUpdatedTimestamp: Long = System.currentTimeMillis()
 )
 
+/**
+ * Phase 3: Documented Personal Tadabbur & Khalwah Reflection Journal Entity.
+ */
+@Entity(tableName = "tadabbur_journal")
+data class TadabburJournalEntity(
+    @PrimaryKey val journalId: String,
+    val compositeKey: String,          // "surah:ayah"
+    val surahNumber: Int,
+    val surahNameAr: String,
+    val ayahNumber: Int,
+    val uthmaniText: String,
+    val meaningFromTafsirAr: String,   // الخطوة ١: فهم المعنى من التفسير المعتمد
+    val hidayahInsightAr: String,      // الخطوة ٢: الهداية القرآنية المستنبطة
+    val practicalActionPlanAr: String, // الخطوة ٣: العمل التطبيقي بالآية
+    val khalwahMinutes: Int = 15,
+    val sourceCitation: String = "تفسير السعدي • ابن كثير",
+    val createdAtTimestamp: Long = System.currentTimeMillis()
+)
+
+/**
+ * Phase 3: Teacher / Muhaffiz Classroom Wird Assignment Entity.
+ */
+@Entity(tableName = "teacher_wird_assignments")
+data class WirdAssignmentEntity(
+    @PrimaryKey val assignmentId: String,
+    val classroomId: String,
+    val classroomTitleAr: String,
+    val supervisorNameAr: String,
+    val surahNumber: Int,
+    val surahNameAr: String,
+    val ayahStart: Int,
+    val ayahEnd: Int,
+    val requiredRepetitions: Int,
+    val focusTajweedRuleAr: String,
+    val teacherInstructionsAr: String,
+    val completedStudentsCount: Int,
+    val totalStudentsCount: Int,
+    val isCompletedByCurrentStudent: Boolean = false,
+    val dueDateLabelAr: String = "نهاية الأسبوع الحالي",
+    val createdAtTimestamp: Long = System.currentTimeMillis()
+)
+
 @Dao
 interface ItqanDao {
     @Query("SELECT * FROM quran_ayahs ORDER BY surahNumber ASC, ayahNumber ASC")
@@ -298,6 +340,32 @@ interface ItqanDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertKhatmahPlans(plans: List<KhatmahPlanEntity>)
+
+    // Phase 3: Tadabbur & Khalwah Journal
+    @Query("SELECT * FROM tadabbur_journal ORDER BY createdAtTimestamp DESC")
+    fun observeTadabburJournals(): Flow<List<TadabburJournalEntity>>
+
+    @Query("SELECT COUNT(*) FROM tadabbur_journal")
+    suspend fun getTadabburJournalCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertTadabburJournal(entry: TadabburJournalEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTadabburJournals(entries: List<TadabburJournalEntity>)
+
+    // Phase 3: Teacher Wird Assignments
+    @Query("SELECT * FROM teacher_wird_assignments ORDER BY createdAtTimestamp DESC")
+    fun observeWirdAssignments(): Flow<List<WirdAssignmentEntity>>
+
+    @Query("SELECT COUNT(*) FROM teacher_wird_assignments")
+    suspend fun getWirdAssignmentCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertWirdAssignment(assignment: WirdAssignmentEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWirdAssignments(assignments: List<WirdAssignmentEntity>)
 }
 
 typealias QuranVerseDao = ItqanDao
@@ -311,9 +379,11 @@ typealias QuranVerseDao = ItqanDao
         CertificateEntity::class,
         ErrorReportEntity::class,
         MistakeLogEntity::class,
-        KhatmahPlanEntity::class
+        KhatmahPlanEntity::class,
+        TadabburJournalEntity::class,
+        WirdAssignmentEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class ItqanDatabase : RoomDatabase() {

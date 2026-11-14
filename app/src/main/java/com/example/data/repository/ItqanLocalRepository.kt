@@ -87,6 +87,12 @@ class ItqanLocalRepository(
         if (dao.getKhatmahPlanCount() == 0) {
             dao.insertKhatmahPlans(com.example.data.local.ItqanPhase2SeedData.buildInitialKhatmahPlans())
         }
+        if (dao.getTadabburJournalCount() == 0) {
+            dao.insertTadabburJournals(com.example.data.local.ItqanPhase3SeedData.buildInitialTadabburJournal())
+        }
+        if (dao.getWirdAssignmentCount() == 0) {
+            dao.insertWirdAssignments(com.example.data.local.ItqanPhase3SeedData.buildInitialWirdAssignments())
+        }
     }
 
     fun observeAllAyahs(): Flow<List<AyahEntity>> = dao.observeAllAyahs()
@@ -249,6 +255,20 @@ class ItqanLocalRepository(
 
     suspend fun saveKhatmahPlan(plan: com.example.data.local.KhatmahPlanEntity) = withContext(Dispatchers.IO) {
         dao.upsertKhatmahPlan(plan)
+    }
+
+    // Phase 3: Tadabbur & Khalwah Reflection Journal
+    fun observeTadabburJournals(): Flow<List<com.example.data.local.TadabburJournalEntity>> = dao.observeTadabburJournals()
+
+    suspend fun saveTadabburJournal(entry: com.example.data.local.TadabburJournalEntity) = withContext(Dispatchers.IO) {
+        dao.upsertTadabburJournal(entry)
+    }
+
+    // Phase 3: Teacher / Muhaffiz Wird Assignments
+    fun observeWirdAssignments(): Flow<List<com.example.data.local.WirdAssignmentEntity>> = dao.observeWirdAssignments()
+
+    suspend fun saveWirdAssignment(assignment: com.example.data.local.WirdAssignmentEntity) = withContext(Dispatchers.IO) {
+        dao.upsertWirdAssignment(assignment)
     }
 
     // Preferences Updates

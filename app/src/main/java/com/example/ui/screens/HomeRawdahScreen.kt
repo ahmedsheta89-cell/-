@@ -95,13 +95,17 @@ fun HomeRawdahScreen(
     onSubmitErrorReport: (String, String, String, String) -> Unit,
     khatmahPlans: List<com.example.data.local.KhatmahPlanEntity> = com.example.data.local.ItqanPhase2SeedData.buildInitialKhatmahPlans(),
     mistakeLogs: List<com.example.data.local.MistakeLogEntity> = emptyList(),
+    allCachedAyahs: List<com.example.data.local.AyahEntity> = emptyList(),
+    tadabburJournals: List<com.example.data.local.TadabburJournalEntity> = com.example.data.local.ItqanPhase3SeedData.buildInitialTadabburJournal(),
     onLogDailyKhatmahWird: (com.example.data.local.KhatmahPlanEntity) -> Unit = {},
     onCreateNewKhatmahPlan: (String, String, Int) -> Unit = { _, _, _ -> },
+    onSaveTadabburJournalEntry: (Int, String, Int, String, String, String, String, Int) -> Unit = { _, _, _, _, _, _, _, _ -> },
     modifier: Modifier = Modifier
 ) {
     var benefitIndex by remember { mutableIntStateOf(0) }
     var showSourceRegistryDialog by remember { mutableStateOf(false) }
     var showReportDialog by remember { mutableStateOf(false) }
+    var showKhalwahTadabburSheet by remember { mutableStateOf(false) }
 
     val nowMillis = System.currentTimeMillis()
     val dueReviews = remember(fsrsReviews, nowMillis) {
@@ -296,6 +300,19 @@ fun HomeRawdahScreen(
                 useEasternDigits = userPrefs.useEasternArabicDigits,
                 onLogDailyWird = onLogDailyKhatmahWird,
                 onCreateNewKhatmahPlan = onCreateNewKhatmahPlan
+            )
+        }
+
+        // 2c. Phase 3: Mushaf Mastery Heatmap & Quranic Khalwah Launcher
+        item {
+            com.example.ui.components.MushafMasteryHeatmapCard(
+                surahCatalog = surahCatalog,
+                cachedAyahs = allCachedAyahs,
+                fsrsReviews = fsrsReviews,
+                mistakeLogs = mistakeLogs,
+                useEasternDigits = userPrefs.useEasternArabicDigits,
+                onSelectSurah = onNavigateToMushaf,
+                onOpenKhalwahMode = { showKhalwahTadabburSheet = true }
             )
         }
 
@@ -574,6 +591,17 @@ fun HomeRawdahScreen(
                     details
                 )
             }
+        )
+    }
+
+    if (showKhalwahTadabburSheet) {
+        com.example.ui.components.QuranicKhalwahAndTadabburSheet(
+            currentAyah = allCachedAyahs.firstOrNull { it.surahNumber == userPrefs.lastReadSurah }
+                ?: allCachedAyahs.firstOrNull(),
+            tadabburJournals = tadabburJournals,
+            useEasternDigits = userPrefs.useEasternArabicDigits,
+            onSaveJournalEntry = onSaveTadabburJournalEntry,
+            onDismiss = { showKhalwahTadabburSheet = false }
         )
     }
 }

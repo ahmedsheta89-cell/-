@@ -284,6 +284,29 @@ class ExampleRobolectricTest {
         // 3. Verify Khatmah planner creation and persistence
         val initialPlans = localRepository.observeKhatmahPlans().first()
         assertFalse(initialPlans.isEmpty())
+
+        // 4. Phase 3: Verify Tadabbur Journal & Teacher Wird Assignments seeding and persistence
+        val initialTadabbur = localRepository.observeTadabburJournals().first()
+        assertFalse(initialTadabbur.isEmpty())
+
+        val initialAssignments = localRepository.observeWirdAssignments().first()
+        assertFalse(initialAssignments.isEmpty())
+
+        val newEntry = com.example.data.local.TadabburJournalEntity(
+            journalId = "tadabbur_test_112_1",
+            compositeKey = "112:1",
+            surahNumber = 112,
+            surahNameAr = "الإخلاص",
+            ayahNumber = 1,
+            uthmaniText = "قُلْ هُوَ اللَّهُ أَحَدٌ",
+            meaningFromTafsirAr = "تفرد الله بالكمال المطلق",
+            hidayahInsightAr = "إخلاص التوحيد لله",
+            practicalActionPlanAr = "قراءة سورة الإخلاص بتدبر في أذكار الصباح والمساء",
+            khalwahMinutes = 15
+        )
+        localRepository.saveTadabburJournal(newEntry)
+        val updatedTadabbur = localRepository.observeTadabburJournals().first()
+        assertTrue(updatedTadabbur.any { it.journalId == "tadabbur_test_112_1" })
     }
 
     @Test
