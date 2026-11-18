@@ -100,6 +100,7 @@ fun HomeRawdahScreen(
     onLogDailyKhatmahWird: (com.example.data.local.KhatmahPlanEntity) -> Unit = {},
     onCreateNewKhatmahPlan: (String, String, Int) -> Unit = { _, _, _ -> },
     onSaveTadabburJournalEntry: (Int, String, Int, String, String, String, String, Int) -> Unit = { _, _, _, _, _, _, _, _ -> },
+    onRestoreBackupSnapshot: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var benefitIndex by remember { mutableIntStateOf(0) }
@@ -567,6 +568,22 @@ fun HomeRawdahScreen(
                     }
                 }
             }
+        }
+
+        // 7. Phase 4: Full Backup Export/Import & Formatted Portfolio Card
+        item {
+            com.example.ui.components.BackupExportAndImportCard(
+                studentName = userPrefs.studentName,
+                streakDays = userPrefs.streakDays,
+                allCachedAyahs = allCachedAyahs,
+                fsrsReviews = fsrsReviews,
+                mistakeLogs = mistakeLogs,
+                tadabburJournals = tadabburJournals,
+                bookmarks = bookmarks,
+                certificates = certificates,
+                useEasternDigits = userPrefs.useEasternArabicDigits,
+                onRestoreBackupSnapshot = onRestoreBackupSnapshot
+            )
         }
     }
 

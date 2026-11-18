@@ -147,14 +147,17 @@ fun HifzAndTasmeeScreen(
     val availableAyahs = if (allCachedAyahs.isNotEmpty()) allCachedAyahs else emptyList()
     val currentTasmeeAyah = availableAyahs.getOrNull(activeAyahIndex % availableAyahs.size.coerceAtLeast(1))
     val currentVoiceAyah = availableAyahs.getOrNull(voiceAyahIndex % availableAyahs.size.coerceAtLeast(1))
+    val latestAvailableAyahs by androidx.compose.runtime.rememberUpdatedState(availableAyahs)
+    val latestVoiceAyah by androidx.compose.runtime.rememberUpdatedState(currentVoiceAyah)
 
     // Real-Time Live Halqah Teacher Engine 2.0
     val halqahManager = remember(context) {
         LiveHalqahTeacherManager(
             context = context,
-            onVerseCompletedWithScore = { _, _ ->
-                if (currentVoiceAyah != null) {
-                    onEvaluateVoiceRecitation(currentVoiceAyah, currentVoiceAyah.uthmaniText)
+            onVerseCompletedWithScore = { completedKey, _ ->
+                val matchedAyah = latestAvailableAyahs.find { it.compositeKey == completedKey } ?: latestVoiceAyah
+                if (matchedAyah != null) {
+                    onEvaluateVoiceRecitation(matchedAyah, matchedAyah.uthmaniText)
                 }
             },
             onMistakeLogged = { surahNum, surahName, ayahNum, wordIdx, expectedW, spokenW, tajweedH ->

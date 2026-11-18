@@ -371,4 +371,232 @@ data class SurahHeatmapCell(
     val activeMistakesCount: Int
 )
 
+/**
+ * Phase 4: Thematic Quran Index Node linked to Al-Qawa'id Al-Hisan by Al-Sa'di.
+ */
+data class ThematicQuranCategory(
+    val id: String,
+    val branchAr: String,           // "العقيدة والتوحيد", "العبادات والشعائر", "الأخلاق وتزكية النفوس", "الأحكام والسنن"
+    val topicTitleAr: String,
+    val saadiPrincipleTitleAr: String,
+    val saadiPrincipleExplanationAr: String,
+    val relatedAyahKeys: List<String>,
+    val comparativeInsightAr: String,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 4: Quranic Stories Atlas & Makki/Madani Revelation Context.
+ */
+data class QuranicStoryAtlasItem(
+    val id: String,
+    val storyTitleAr: String,
+    val centralFiguresAr: String,
+    val primarySurahNameAr: String,
+    val surahNumber: Int,
+    val ayahRangeAr: String,
+    val revelationPlaceAr: String,   // "مكية" | "مدنية"
+    val historicalLocationAr: String,
+    val centralMaqsadAr: String,
+    val pedagogicalLessons: List<String>,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 4: Morphological Root Entry for Root-Based Quranic Search.
+ */
+data class MorphologicalRootEntry(
+    val rootId: String,
+    val rootSpacedAr: String,        // e.g. "ر ح م"
+    val rootPlainAr: String,         // e.g. "رحم"
+    val raghibCoreMeaningAr: String,
+    val derivativesWithAyahs: List<Pair<String, String>>, // Pair(DerivativeWord, AyahReferenceAndSnippet)
+    val relatedCompositeKeys: List<String>,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 4: Waqf & Ibtida' Classification & Interactive Lab Models.
+ */
+enum class WaqfTypeCategory(
+    val labelAr: String,
+    val mushafSignAr: String,
+    val rulingSummaryAr: String
+) {
+    LAZIM(
+        labelAr = "الوقف اللازم (البياني)",
+        mushafSignAr = "مـ",
+        rulingSummaryAr = "يلزم الوقف عليه لأن الوصل يوهم معنى غير مراد، ويبتدأ بما بعده."
+    ),
+    TAM(
+        labelAr = "الوقف التام",
+        mushafSignAr = "قلى",
+        rulingSummaryAr = "الوقف على كلام تم معناه ولم يتعلق بما بعده لا لفظاً ولا معنى، يحسن الوقف عليه والابتداء بما بعده."
+    ),
+    KAFI(
+        labelAr = "الوقف الكافي",
+        mushafSignAr = "ج / قلى",
+        rulingSummaryAr = "الوقف على كلام تم معناه وتعلق بما بعده معنى لا لفظاً (إعراباً)، يحسن الوقف عليه والابتداء بما بعده."
+    ),
+    HASAN(
+        labelAr = "الوقف الحسن",
+        mushafSignAr = "صلى",
+        rulingSummaryAr = "الوقف على كلام تم معناه وتعلق بما بعده لفظاً ومعنى؛ يجوز الوقف عليه ولا يحسن الابتداء بما بعده إلا على رأس آية."
+    ),
+    QABIH(
+        labelAr = "الوقف القبيح",
+        mushafSignAr = "لا",
+        rulingSummaryAr = "الوقف على ما لم يتم معناه لشدة تعلقه بما بعده لفظاً ومعنى، أو ما يفسد المعنى؛ لا يجوز تعمده إلا لضرورة انقطاع نفس."
+    )
+}
+
+data class WaqfAndIbtidaExample(
+    val id: String,
+    val waqfCategory: WaqfTypeCategory,
+    val surahNameAr: String,
+    val ayahNumber: Int,
+    val uthmaniWithMarker: String,
+    val stopWordTargetAr: String,
+    val ibtidaRuleAr: String,
+    val grammaticalAndSemanticAnalysisAr: String,
+    val jazariyyahEvidenceAr: String,
+    val interactiveQuestionAr: String,
+    val optionsAr: List<String>,
+    val correctOptionIndex: Int
+)
+
+/**
+ * Phase 4: Special Performance Rules in Hafs 'an 'Asim (Sakt, Rawm, Ishmam, Imalah, Tasheel).
+ */
+data class HafsSpecialPerformanceItem(
+    val id: String,
+    val categoryAr: String,          // "السكتات الأربع الواجبة", "السكتات الجائزة", "الروم والإشمام", "الإمالة والتسهيل والاختلاس"
+    val titleAr: String,
+    val surahAndAyahAr: String,
+    val uthmaniSnippetAr: String,
+    val definitionAndPerformanceAr: String,
+    val acousticCoachingTipAr: String,
+    val shatibiyyahAndJazariyyahEvidenceAr: String
+)
+
+/**
+ * Phase 4: Specialized Quranic Sciences Modules (Naskh, Asbab Al-Nuzul, I'rab Al-Jumal).
+ */
+data class SpecializedScienceModule(
+    val id: String,
+    val disciplineAr: String,        // "الناسخ والمنسوخ" | "ضوابط أسباب النزول" | "إعراب الجمل القرآنية"
+    val titleAr: String,
+    val foundationalRuleAr: String,
+    val detailedExplanationAr: String,
+    val quranicExampleUthmani: String,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 5: Uthmani Orthography (الرسم العثماني), Diacritical Dabt (علم الضبط), and Verse Counting (علم الفواصل وعد الآي).
+ */
+data class UthmaniOrthographyRule(
+    val id: String,
+    val categoryAr: String,          // "القواعد الست للرسم العثماني" | "علم الضبط وعلامات المصحف" | "علم الفواصل وعدّ الآي"
+    val ruleTitleAr: String,
+    val uthmaniWordExample: String,
+    val standardImlaiComparison: String,
+    val surahAndAyahRefAr: String,
+    val scholarlySecretAndRuleAr: String,
+    val qiraatConnectionAr: String,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 5: Science of Surah & Ayah Cohesion (علم المناسبات بين الآيات والسور) & Memorization Anchors (روابط تثبيت الحفظ).
+ */
+data class SurahMunasabahAndAnchor(
+    val id: String,
+    val surahNumber: Int,
+    val surahNameAr: String,
+    val openingAndClosingHarmonyAr: String,
+    val connectionWithPreviousSurahAr: String,
+    val hifzSequentialAnchors: List<String>,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 5: Ten Canonical Qira'at Imams & 20 Narrators Lineage Tree (شجرة أسانيد القراء العشرة ورواتهم العشرين).
+ */
+data class QiraatImamIsnadNode(
+    val id: String,
+    val imamRankNumber: Int,         // 1..10
+    val imamNameAndCityAr: String,   // e.g. "١. الإمام نافع المدني (ت ١٦٩ هـ)"
+    val firstRawiAr: String,
+    val secondRawiAr: String,
+    val sahabiSanadChainAr: String,  // Chain up to the Companions & Prophet ﷺ
+    val distinctMethodologySummaryAr: String,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 6: Science of Polysemous Quranic Terms (علم الوجوه والنظائر في القرآن الكريم).
+ */
+data class WujuhMeaningWitness(
+    val meaningTitleAr: String,
+    val uthmaniWitnessAr: String,
+    val surahAndAyahRefAr: String,
+    val targetSurahNumber: Int
+)
+
+data class WujuhWaNazairEntry(
+    val id: String,
+    val quranicTermAr: String,
+    val rootAr: String,
+    val summaryAr: String,
+    val meanings: List<WujuhMeaningWitness>,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 6: Rhetorical & Linguistic Distinctions between Near-Synonyms (الفروق اللغوية ولطائف البيان القرآني).
+ */
+data class QuranicLinguisticFurukEntry(
+    val id: String,
+    val pairTitleAr: String,
+    val firstTermAr: String,
+    val firstTermMeaningAndWitnessAr: String,
+    val secondTermAr: String,
+    val secondTermMeaningAndWitnessAr: String,
+    val rhetoricalSecretAr: String,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 6: Interactive Mutashabihat Hifz Drill & Mnemonic Anchor (مختبر وتدريب ضبط المتشابهات اللفظية).
+ */
+data class MutashabihatDrillExercise(
+    val id: String,
+    val categoryAr: String,
+    val questionPromptAr: String,
+    val firstAyahSnippetAr: String,
+    val secondAyahSnippetAr: String,
+    val options: List<String>,
+    val correctOptionIndex: Int,
+    val mnemonicAnchorRuleAr: String,
+    val sourceCitation: String
+)
+
+/**
+ * Phase 6: Breath Control & Long-Ayah Recitation Endurance Drill (مدرب ضبط النَّفَس والوقفات في الآيات الطوال).
+ */
+data class BreathAndEnduranceDrill(
+    val id: String,
+    val titleAr: String,
+    val surahAndAyahRefAr: String,
+    val targetBreathSeconds: Int,
+    val segmentedStopsAr: List<String>,
+    val resumptionRuleAfterBreathStopAr: String,
+    val vocalTipAr: String,
+    val sourceCitation: String
+)
+
+
+
+
 

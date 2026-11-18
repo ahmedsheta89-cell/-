@@ -75,7 +75,7 @@ class ItqanLocalRepository(
     }
 
     suspend fun ensureSeeded() = withContext(Dispatchers.IO) {
-        if (dao.getAyahCount() < 15) {
+        if (dao.getAyahCount() < 47) {
             dao.insertAyahs(ItqanSeedData.buildInitialAyahEntities())
         }
         if (dao.getFsrsCount() == 0) {

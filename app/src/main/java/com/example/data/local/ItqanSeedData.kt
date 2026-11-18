@@ -156,7 +156,10 @@ object ItqanSeedData {
         SurahMetadata(96, "العلق", "Al-'Alaq", "مكية", 19, 597, 30, "مفتتح الوحي بالقراءة والعلم والعبودية بالركوع والسجود."),
         SurahMetadata(97, "القدر", "Al-Qadr", "مكية", 5, 598, 30, "شرف ليلة إنزال القرآن وفضلها على ألف شهر."),
         SurahMetadata(103, "العصر", "Al-'Asr", "مكية", 3, 601, 30, "أركان النجاة الأربعة: الإيمان والعمل الصالح والتواصي بالحق والصبر."),
+        SurahMetadata(106, "قريش", "Quraysh", "مكية", 4, 602, 30, "تذكير قريش بنعمتي الإطعام من جوع والأمن من خوف لإخلاص العبادة لرب البيت."),
         SurahMetadata(108, "الكوثر", "Al-Kawthar", "مكية", 3, 602, 30, "الامتنان بالعطاء الكثير وشكره بالصلاة والنحر."),
+        SurahMetadata(110, "النصر", "An-Nasr", "مدنية", 3, 603, 30, "بشارة النصر والفتح ودخول الناس في دين الله أفواجاً وختمه بالتسبيح والاستغفار."),
+        SurahMetadata(111, "المسد", "Al-Masad", "مكية", 5, 603, 30, "خسران أبي لهب وامرأته وعاقبة معاداة دعوة التوحيد."),
         SurahMetadata(112, "الإخلاص", "Al-Ikhlas", "مكية", 4, 604, 30, "تجريد التوحيد الخالص لله الواحد الأحد الصمد."),
         SurahMetadata(113, "الفلق", "Al-Falaq", "مكية", 5, 604, 30, "الاستعاذة برب الفلق من الشرور الظاهرة والخفية."),
         SurahMetadata(114, "الناس", "An-Nas", "مكية", 6, 604, 30, "الاستعاذة برب الناس وملكهم وإلههم من وسواس الخناس.")
@@ -385,7 +388,10 @@ object ItqanSeedData {
                 tajweedAndQiraat = "إدغام اللام الشمسية في الصاد المشددة من (الصَّمَدُ) مع تفخيم الصاد وإطباقها، وقلقلة الدال وقفاً."
             )
         )
-        return rawAyahs + ItqanPhase2SeedData.buildExpandedOfflineAyahs()
+        return rawAyahs +
+            ItqanPhase2SeedData.buildExpandedOfflineAyahs() +
+            ItqanPhase5SeedData.buildPhase5OfflineAyahs() +
+            ItqanPhase6SeedData.buildPhase6OfflineAyahs()
     }
 
     fun buildInitialFsrsReviews(nowMillis: Long = System.currentTimeMillis()): List<FsrsReviewEntity> {

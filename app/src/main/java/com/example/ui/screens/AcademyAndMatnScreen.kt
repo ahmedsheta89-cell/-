@@ -100,9 +100,10 @@ fun AcademyAndMatnScreen(
     onSubmitTeacherFeedback: (String, String) -> Unit = { _, _ -> },
     onIssueStageCertificate: (String) -> Unit = {},
     onSubmitDiagnosticScore: (Int) -> Unit = {},
+    onSubmitComprehensiveExamScore: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // 0 = المسارات العلمية, 1 = المتون, 2 = الشهادات, 3 = مختبر المخارج ١٧, 4 = بوابة المعلم والمحفّظ
+    // 0 = المسارات العلمية, 1 = المتون, 2 = الشهادات, 3 = مختبر المخارج ١٧, 4 = بوابة المعلم والمحفّظ, 5 = مختبر الوقف والناسخ
     var topSectionTab by remember { mutableIntStateOf(0) }
     var selectedTrack by remember { mutableStateOf(ScienceTrackId.TAJWEED) }
     var activeLesson by remember { mutableStateOf<ScienceLesson?>(null) }
@@ -110,6 +111,7 @@ fun AcademyAndMatnScreen(
     var hiddenMatnHemistichIds by remember { mutableStateOf(setOf<String>()) }
     var activePlayingMatnIndex by remember { mutableIntStateOf(-1) }
     var showDiagnosticQuizDialog by remember { mutableStateOf(false) }
+    var showComprehensiveExamDialog by remember { mutableStateOf(false) }
     var lessonForErrorReport by remember { mutableStateOf<ScienceLesson?>(null) }
 
     if (activeLesson != null) {
@@ -170,6 +172,13 @@ fun AcademyAndMatnScreen(
                     text = { Text("بوابة المعلم والمحفّظ") },
                     icon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
                     modifier = Modifier.testTag("academy_teacher_portal_tab")
+                )
+                Tab(
+                    selected = topSectionTab == 5,
+                    onClick = { topSectionTab = 5 },
+                    text = { Text("مختبر الوقف والناسخ") },
+                    icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null) },
+                    modifier = Modifier.testTag("academy_waqf_naskh_lab_tab")
                 )
             }
 
@@ -625,6 +634,13 @@ fun AcademyAndMatnScreen(
                         onIssueStageCertificate = onIssueStageCertificate
                     )
                 }
+                5 -> {
+                    // Phase 4: Interactive Waqf & Ibtida' Lab, Hafs Special Performance & Specialized Sciences
+                    com.example.ui.components.WaqfAndHafsLabView(
+                        useEasternDigits = userPrefs.useEasternArabicDigits,
+                        onOpenComprehensiveExam = { showComprehensiveExamDialog = true }
+                    )
+                }
             }
         }
     }
@@ -634,6 +650,14 @@ fun AcademyAndMatnScreen(
             useEasternDigits = userPrefs.useEasternArabicDigits,
             onDismiss = { showDiagnosticQuizDialog = false },
             onSubmitDiagnosticScore = onSubmitDiagnosticScore
+        )
+    }
+
+    if (showComprehensiveExamDialog) {
+        com.example.ui.components.ComprehensiveMasteryExamDialog(
+            useEasternDigits = userPrefs.useEasternArabicDigits,
+            onDismiss = { showComprehensiveExamDialog = false },
+            onSubmitComprehensiveScore = onSubmitComprehensiveExamScore
         )
     }
 

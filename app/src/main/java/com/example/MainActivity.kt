@@ -471,6 +471,9 @@ fun ItqanMainShell(
                                     },
                                     onSaveTadabburJournalEntry = { sNum, sName, aNum, uth, taf, hid, act, min ->
                                         viewModel.saveTadabburJournalEntry(sNum, sName, aNum, uth, taf, hid, act, min)
+                                    },
+                                    onRestoreBackupSnapshot = {
+                                        viewModel.restoreBackupSnapshot()
                                     }
                                 )
                             }
@@ -481,6 +484,7 @@ fun ItqanMainShell(
                                     surahCatalog = viewModel.surahCatalog,
                                     selectedSurahNumber = selectedSurahNumber,
                                     currentSurahAyahs = currentSurahAyahs,
+                                    allCachedAyahs = allCachedAyahs,
                                     isDownloadingSurah = isDownloadingSurah,
                                     searchQuery = searchQuery,
                                     searchResults = searchResults,
@@ -518,6 +522,12 @@ fun ItqanMainShell(
                                     },
                                     onSaveTadabburJournalEntry = { sNum, sName, aNum, uth, taf, hid, act, min ->
                                         viewModel.saveTadabburJournalEntry(sNum, sName, aNum, uth, taf, hid, act, min)
+                                    },
+                                    onVoiceAyahSearch = { spoken ->
+                                        viewModel.performVoiceAyahSearch(spoken)
+                                    },
+                                    onToggleQuickNightMode = {
+                                        viewModel.toggleQuickNightReadingMode()
                                     }
                                 )
                             }
@@ -554,6 +564,9 @@ fun ItqanMainShell(
                                     },
                                     onSubmitDiagnosticScore = { pct ->
                                         viewModel.submitDiagnosticPlacementScore(pct)
+                                    },
+                                    onSubmitComprehensiveExamScore = { pct ->
+                                        viewModel.submitComprehensiveEncyclopediaExamScore(pct)
                                     }
                                 )
                             }

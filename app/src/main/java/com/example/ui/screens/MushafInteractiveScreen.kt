@@ -91,6 +91,7 @@ fun MushafInteractiveScreen(
     surahCatalog: List<SurahMetadata>,
     selectedSurahNumber: Int,
     currentSurahAyahs: List<AyahEntity>,
+    allCachedAyahs: List<AyahEntity> = currentSurahAyahs,
     isDownloadingSurah: Boolean,
     searchQuery: String,
     searchResults: List<AyahEntity>,
@@ -119,6 +120,8 @@ fun MushafInteractiveScreen(
     tadabburJournals: List<com.example.data.local.TadabburJournalEntity> = com.example.data.local.ItqanPhase3SeedData.buildInitialTadabburJournal(),
     onSelectQiraatNarrator: (String) -> Unit = {},
     onSaveTadabburJournalEntry: (Int, String, Int, String, String, String, String, Int) -> Unit = { _, _, _, _, _, _, _, _ -> },
+    onVoiceAyahSearch: (String) -> Unit = onSearchQueryChange,
+    onToggleQuickNightMode: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showReciterDialog by remember { mutableStateOf(false) }
@@ -126,6 +129,10 @@ fun MushafInteractiveScreen(
     var encyclopediaExplorerTab by remember { mutableStateOf<Int?>(null) }
     var showColoredQiraatBar by remember { mutableStateOf(false) }
     var showKhalwahTadabburSheet by remember { mutableStateOf(false) }
+    var showThematicStoriesRootSheet by remember { mutableStateOf(false) }
+    var showOrthographyMunasabatIsnadSheet by remember { mutableStateOf(false) }
+    var showWujuhFurukMutashabihatSheet by remember { mutableStateOf(false) }
+    var showVoiceSearchPresets by remember { mutableStateOf(false) }
 
     val selectedSurahMeta = surahCatalog.find { it.number == selectedSurahNumber } ?: surahCatalog.first()
     val displayedAyahs = if (searchQuery.isNotBlank()) searchResults else currentSurahAyahs
@@ -136,11 +143,11 @@ fun MushafInteractiveScreen(
             .padding(horizontal = 14.dp, vertical = 10.dp)
             .testTag("mushaf_interactive_screen")
     ) {
-        // 1. Search & Mode Controls Row
+        // 1. Search & Voice Ayah Search Controls Row
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchQueryChange,
-            placeholder = { Text("ابحث في الآيات أو السور أو التفسير (بدون تشكيل)...") },
+            placeholder = { Text("ابحث في الآيات أو التفسير أو بالصوت...") },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -148,9 +155,24 @@ fun MushafInteractiveScreen(
                 )
             },
             trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    TextButton(onClick = { onSearchQueryChange("") }) {
-                        Text("مسح")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (searchQuery.isNotEmpty()) {
+                        TextButton(onClick = { onSearchQueryChange("") }) {
+                            Text("مسح")
+                        }
+                    }
+                    TextButton(
+                        onClick = { showVoiceSearchPresets = !showVoiceSearchPresets },
+                        modifier = Modifier.testTag("voice_ayah_search_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.RecordVoiceOver,
+                            contentDescription = "البحث الصوتي بالآيات",
+                            tint = IlluminatedGold,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("بحث صوتي", color = IlluminatedGold)
                     }
                 }
             },
@@ -160,6 +182,34 @@ fun MushafInteractiveScreen(
                 .fillMaxWidth()
                 .testTag("mushaf_search_input")
         )
+
+        if (showVoiceSearchPresets) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp)
+            ) {
+                val presets = listOf(
+                    "الرحمن الرحيم",
+                    "إياك نعبد",
+                    "الله الصمد",
+                    "رب الفلق",
+                    "ليلة القدر",
+                    "الكوثر"
+                )
+                items(presets) { sample ->
+                    FilterChip(
+                        selected = searchQuery == sample,
+                        onClick = {
+                            onVoiceAyahSearch(sample)
+                            showVoiceSearchPresets = false
+                        },
+                        label = { Text("🎙️ «$sample»") }
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -184,13 +234,13 @@ fun MushafInteractiveScreen(
             }
         }
 
-        // 3. Display Mode Toggle (Page 604 View vs Study View) & Tajweed Colors Toggle
+        // 3. Display Mode Toggle (Page 604 View vs Study View) & Tajweed Colors & Quick Night Mode Toggle
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 FilterChip(
                     selected = userPrefs.mushafPageMode,
                     onClick = { onTogglePageMode(!userPrefs.mushafPageMode) },
@@ -202,7 +252,7 @@ fun MushafInteractiveScreen(
                         )
                     },
                     label = {
-                        Text(if (userPrefs.mushafPageMode) "صفحات المصحف (٦٠٤)" else "وضع الدراسة والتفسير")
+                        Text(if (userPrefs.mushafPageMode) "صفحات (٦٠٤)" else "وضع الدراسة")
                     },
                     modifier = Modifier.testTag("toggle_mushaf_mode_chip")
                 )
@@ -217,8 +267,15 @@ fun MushafInteractiveScreen(
                             modifier = Modifier.size(16.dp)
                         )
                     },
-                    label = { Text("تلوين التجويد") },
+                    label = { Text("التجويد") },
                     modifier = Modifier.testTag("toggle_tajweed_colors_chip")
+                )
+
+                FilterChip(
+                    selected = userPrefs.themeMode == com.example.ui.theme.ItqanThemeMode.ROYAL_EMERALD_DARK,
+                    onClick = onToggleQuickNightMode,
+                    label = { Text("وضع ليلي 🌙") },
+                    modifier = Modifier.testTag("quick_night_reading_mode_chip")
                 )
             }
 
@@ -234,13 +291,37 @@ fun MushafInteractiveScreen(
             }
         }
 
-        // 3b. Phase 2 Interactive Encyclopedic Tools Ribbon (Ten Qira'at & Tafsirs | Mind Maps & Mutashabihat | Gharib Lexicon)
+        // 3b. Interactive Encyclopedic Tools Ribbon (Thematic Index & Roots | Ten Qira'at | Mind Maps | Gharib Lexicon | Colored Qira'at | Khalwah)
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 6.dp)
         ) {
+            item {
+                FilterChip(
+                    selected = showThematicStoriesRootSheet,
+                    onClick = { showThematicStoriesRootSheet = true },
+                    label = { Text("الفهرس الموضوعي والقصص والجذر") },
+                    modifier = Modifier.testTag("open_thematic_stories_root_chip")
+                )
+            }
+            item {
+                FilterChip(
+                    selected = showOrthographyMunasabatIsnadSheet,
+                    onClick = { showOrthographyMunasabatIsnadSheet = true },
+                    label = { Text("الرسم العثماني والمناسبات والأسانيد") },
+                    modifier = Modifier.testTag("open_orthography_munasabat_isnad_chip")
+                )
+            }
+            item {
+                FilterChip(
+                    selected = showWujuhFurukMutashabihatSheet,
+                    onClick = { showWujuhFurukMutashabihatSheet = true },
+                    label = { Text("الوجوه والنظائر والفروق والمتشابهات") },
+                    modifier = Modifier.testTag("open_wujuh_furuk_mutashabihat_chip")
+                )
+            }
             item {
                 FilterChip(
                     selected = encyclopediaExplorerTab == 0,
@@ -660,6 +741,42 @@ fun MushafInteractiveScreen(
             useEasternDigits = userPrefs.useEasternArabicDigits,
             onSaveJournalEntry = onSaveTadabburJournalEntry,
             onDismiss = { showKhalwahTadabburSheet = false }
+        )
+    }
+
+    if (showThematicStoriesRootSheet) {
+        com.example.ui.components.ThematicIndexStoriesAndRootSheet(
+            allCachedAyahs = allCachedAyahs.ifEmpty { currentSurahAyahs },
+            useEasternDigits = userPrefs.useEasternArabicDigits,
+            onSelectSurah = { surahNum ->
+                onSelectSurah(surahNum)
+                showThematicStoriesRootSheet = false
+            },
+            onDismiss = { showThematicStoriesRootSheet = false }
+        )
+    }
+
+    if (showOrthographyMunasabatIsnadSheet) {
+        com.example.ui.components.OrthographyMunasabatAndIsnadSheet(
+            studentName = userPrefs.studentName,
+            memorizedVersesCount = allCachedAyahs.count { it.isMemorized || it.recitationCount > 0 }.coerceAtLeast(12),
+            useEasternDigits = userPrefs.useEasternArabicDigits,
+            onSelectSurah = { surahNum ->
+                onSelectSurah(surahNum)
+                showOrthographyMunasabatIsnadSheet = false
+            },
+            onDismiss = { showOrthographyMunasabatIsnadSheet = false }
+        )
+    }
+
+    if (showWujuhFurukMutashabihatSheet) {
+        com.example.ui.components.BalaghahWujuhAndMutashabihatLabSheet(
+            useEasternDigits = userPrefs.useEasternArabicDigits,
+            onSelectSurah = { surahNum ->
+                onSelectSurah(surahNum)
+                showWujuhFurukMutashabihatSheet = false
+            },
+            onDismiss = { showWujuhFurukMutashabihatSheet = false }
         )
     }
 }

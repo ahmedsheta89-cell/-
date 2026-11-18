@@ -136,4 +136,96 @@ class ExampleUnitTest {
         assertTrue(report.contains("تقرير الأداء الأسبوعي"))
         assertEquals(4, com.example.data.local.ItqanPhase3SeedData.qiraatNarratorProfiles.size)
     }
+
+    @Test
+    fun phase4ThematicIndexWaqfLabHafsSpecialsAndBackupJson_isCompleteAndVerified() {
+        val thematic = com.example.data.local.ItqanPhase4SeedData.thematicQuranIndex
+        assertEquals(4, thematic.size)
+        assertTrue(thematic.all { it.saadiPrincipleTitleAr.isNotBlank() && it.sourceCitation.isNotBlank() })
+
+        val stories = com.example.data.local.ItqanPhase4SeedData.quranicStoriesAtlas
+        assertTrue(stories.size >= 3)
+        assertTrue(stories.all { it.pedagogicalLessons.isNotEmpty() })
+
+        val roots = com.example.data.local.ItqanPhase4SeedData.morphologicalRootsCatalog
+        assertTrue(roots.any { it.rootSpacedAr.contains("ر ح م") })
+        assertTrue(roots.any { it.rootSpacedAr.contains("ع ب د") })
+
+        val waqfExamples = com.example.data.local.ItqanPhase4SeedData.waqfAndIbtidaExamples
+        assertEquals(5, waqfExamples.size)
+
+        val hafsSpecials = com.example.data.local.ItqanPhase4SeedData.hafsSpecialPerformanceCatalog
+        assertTrue(hafsSpecials.any { it.categoryAr.contains("السكتات الأربع الواجبة") })
+        assertTrue(hafsSpecials.any { it.categoryAr.contains("الروم والإشمام") })
+
+        val specialized = com.example.data.local.ItqanPhase4SeedData.specializedScienceModules
+        assertEquals(3, specialized.size)
+
+        val backupJson = com.example.data.local.ItqanPhase4SeedData.buildFullBackupJson(
+            studentName = "أحمد شتا",
+            streakDays = 14,
+            memorizedVerses = emptyList(),
+            fsrsReviews = emptyList(),
+            mistakeLogs = emptyList(),
+            tadabburJournals = emptyList(),
+            bookmarks = emptyList(),
+            certificates = emptyList()
+        )
+        assertTrue(backupJson.contains("itqan-v4.0-2025"))
+        assertTrue(backupJson.contains("أحمد شتا"))
+    }
+
+    @Test
+    fun phase5OfflineSurahsOrthographyMunasabatAndIsnadTree_isCompleteAndVerified() {
+        val phase5Ayahs = com.example.data.local.ItqanPhase5SeedData.buildPhase5OfflineAyahs()
+        assertEquals(8, phase5Ayahs.count { it.surahNumber == 94 }) // Ash-Sharh complete
+        assertEquals(3, phase5Ayahs.count { it.surahNumber == 108 }) // Al-Kawthar complete
+
+        val rasmCatalog = com.example.data.local.ItqanPhase5SeedData.uthmaniOrthographyAndFawasilCatalog
+        assertTrue(rasmCatalog.size >= 5)
+        assertTrue(rasmCatalog.any { it.categoryAr.contains("الفواصل وعدّ الآي") })
+
+        val munasabat = com.example.data.local.ItqanPhase5SeedData.surahMunasabatAndAnchorsCatalog
+        assertTrue(munasabat.size >= 3)
+        assertTrue(munasabat.all { it.hifzSequentialAnchors.isNotEmpty() })
+
+        val isnadTree = com.example.data.local.ItqanPhase5SeedData.tenReadersIsnadTree
+        assertEquals(10, isnadTree.size)
+
+        val readinessReport = com.example.data.local.ItqanPhase5SeedData.buildComprehensiveIjazahReadinessReport(
+            studentName = "أحمد شتا",
+            memorizedVersesCount = 24,
+            completedLessonsCount = 8,
+            certificatesCount = 3,
+            unresolvedMistakesCount = 0,
+            averageFsrsStability = 4.5
+        )
+        assertTrue(readinessReport.contains("مؤشر الجاهزية الشامل للعرض"))
+        assertTrue(readinessReport.contains("أحمد شتا"))
+    }
+
+    @Test
+    fun phase6OfflineSurahsWujuhFurukMutashabihatAndBreathDrills_isCompleteAndVerified() {
+        val phase6Ayahs = com.example.data.local.ItqanPhase6SeedData.buildPhase6OfflineAyahs()
+        assertEquals(4, phase6Ayahs.count { it.surahNumber == 106 }) // Quraysh complete
+        assertEquals(3, phase6Ayahs.count { it.surahNumber == 110 }) // An-Nasr complete
+        assertEquals(5, phase6Ayahs.count { it.surahNumber == 111 }) // Al-Masad complete
+
+        val wujuh = com.example.data.local.ItqanPhase6SeedData.wujuhWaNazairCatalog
+        assertTrue(wujuh.size >= 5)
+        assertTrue(wujuh.all { it.meanings.isNotEmpty() && it.sourceCitation.isNotBlank() })
+
+        val furuk = com.example.data.local.ItqanPhase6SeedData.linguisticFurukCatalog
+        assertTrue(furuk.size >= 6)
+        assertTrue(furuk.all { it.rhetoricalSecretAr.isNotBlank() })
+
+        val drills = com.example.data.local.ItqanPhase6SeedData.mutashabihatDrillExercises
+        assertTrue(drills.size >= 5)
+        assertTrue(drills.all { it.mnemonicAnchorRuleAr.isNotBlank() })
+
+        val breathDrills = com.example.data.local.ItqanPhase6SeedData.breathAndEnduranceDrills
+        assertTrue(breathDrills.size >= 4)
+        assertTrue(breathDrills.all { it.segmentedStopsAr.isNotEmpty() && it.targetBreathSeconds >= 10 })
+    }
 }
+

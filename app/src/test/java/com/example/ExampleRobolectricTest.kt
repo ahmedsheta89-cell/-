@@ -357,14 +357,19 @@ class ExampleRobolectricTest {
         // 1. Verify Home Rawdah Screen
         composeTestRule.onNodeWithTag("home_rawdah_screen").assertIsDisplayed()
 
-        // 2. Navigate to Interactive Mushaf Tab
+        // 2. Navigate to Interactive Mushaf Tab & verify Phase 4 & 5 chips
         composeTestRule.onNodeWithTag("nav_tab_mushaf").performClick()
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag("mushaf_interactive_screen").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("quick_night_reading_mode_chip").assertExists()
+        composeTestRule.onNodeWithTag("open_thematic_stories_root_chip").assertExists()
+        composeTestRule.onNodeWithTag("open_orthography_munasabat_isnad_chip").assertExists()
+        composeTestRule.onNodeWithTag("open_wujuh_furuk_mutashabihat_chip").assertExists()
 
-        // 3. Navigate to Academy & Matn Tab
+        // 3. Navigate to Academy & Matn Tab & verify Phase 4 Waqf & Naskh Lab tab
         composeTestRule.onNodeWithTag("nav_tab_academy").performClick()
         composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag("academy_waqf_naskh_lab_tab").assertExists()
 
         // 4. Navigate to Hifz & Voice Tasmee' Tab
         composeTestRule.onNodeWithTag("nav_tab_hifz").performClick()

@@ -310,4 +310,9 @@ class QuranAudioPlayerManager {
         }
         mediaPlayer = null
     }
+
+    fun shutdownAll() {
+        sleepTimerJob?.cancel()
+        releaseMediaPlayer()
+    }
 }
